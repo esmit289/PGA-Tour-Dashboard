@@ -16,9 +16,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendChart } from "@/components/trend-chart";
 import { getPlayer, getPlayerHistory } from "@/lib/queries";
-import { formatStat } from "@/lib/format";
+import { formatStat, headshotUrl } from "@/lib/format";
 
 export default async function PlayerPage({ params }: PageProps<"/players/[id]">) {
   const { id } = await params;
@@ -47,14 +48,29 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <Link href="/players" className="text-sm text-muted-foreground hover:underline">
-            ← All players
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            {player.player_name}
-          </h1>
-          {player.country && <Badge variant="outline">{player.country}</Badge>}
+        <div className="flex items-center gap-4">
+          <Avatar className="size-20 sm:size-24">
+            <AvatarImage
+              src={headshotUrl(player.player_id)}
+              alt={player.player_name}
+            />
+            <AvatarFallback className="text-lg">
+              {player.player_name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <Link href="/players" className="text-sm text-muted-foreground hover:underline">
+              ← All players
+            </Link>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {player.player_name}
+            </h1>
+            {player.country && <Badge variant="outline">{player.country}</Badge>}
+          </div>
         </div>
         <div className="flex gap-2">
           <Link

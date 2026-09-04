@@ -69,22 +69,22 @@ export type PlayerSeasonRow = PlayerSeasonStat & {
 };
 
 export const STAT_OPTIONS = [
-  { key: "sg_total", label: "SG: Total", rankKey: "sg_total_rank", format: "decimal2" },
-  { key: "scoring_avg", label: "Scoring Average", rankKey: "scoring_avg_rank", format: "decimal3" },
-  { key: "official_money", label: "Official Money", rankKey: "official_money_rank", format: "money" },
-  { key: "driving_distance", label: "Driving Distance", rankKey: "driving_distance_rank", format: "decimal1" },
-  { key: "driving_accuracy_pct", label: "Driving Accuracy %", rankKey: "driving_accuracy_rank", format: "pct" },
-  { key: "gir_pct", label: "Greens in Regulation %", rankKey: "gir_rank", format: "pct" },
-  { key: "putting_avg", label: "Putting Average", rankKey: "putting_avg_rank", format: "decimal3" },
-  { key: "scrambling_pct", label: "Scrambling %", rankKey: "scrambling_rank", format: "pct" },
-  { key: "sg_off_the_tee", label: "SG: Off-the-Tee", rankKey: "sg_off_the_tee_rank", format: "decimal2" },
-  { key: "sg_approach", label: "SG: Approach", rankKey: "sg_approach_rank", format: "decimal2" },
-  { key: "sg_around_green", label: "SG: Around-the-Green", rankKey: "sg_around_green_rank", format: "decimal2" },
-  { key: "sg_putting", label: "SG: Putting", rankKey: "sg_putting_rank", format: "decimal2" },
-  { key: "birdie_avg", label: "Birdie Average", rankKey: "birdie_avg_rank", format: "decimal2" },
-  { key: "wins", label: "Wins", rankKey: "wins_rank", format: "int" },
-  { key: "top_10", label: "Top 10 Finishes", rankKey: "top_10_rank", format: "int" },
-  { key: "world_rank", label: "World Golf Ranking", rankKey: "world_rank", format: "int" },
+  { key: "sg_total", label: "SG: Total", rankKey: "sg_total_rank", format: "decimal2", lowerIsBetter: false },
+  { key: "scoring_avg", label: "Scoring Average", rankKey: "scoring_avg_rank", format: "decimal3", lowerIsBetter: true },
+  { key: "official_money", label: "Official Money", rankKey: "official_money_rank", format: "money", lowerIsBetter: false },
+  { key: "driving_distance", label: "Driving Distance", rankKey: "driving_distance_rank", format: "decimal1", lowerIsBetter: false },
+  { key: "driving_accuracy_pct", label: "Driving Accuracy %", rankKey: "driving_accuracy_rank", format: "pct", lowerIsBetter: false },
+  { key: "gir_pct", label: "Greens in Regulation %", rankKey: "gir_rank", format: "pct", lowerIsBetter: false },
+  { key: "putting_avg", label: "Putting Average", rankKey: "putting_avg_rank", format: "decimal3", lowerIsBetter: true },
+  { key: "scrambling_pct", label: "Scrambling %", rankKey: "scrambling_rank", format: "pct", lowerIsBetter: false },
+  { key: "sg_off_the_tee", label: "SG: Off-the-Tee", rankKey: "sg_off_the_tee_rank", format: "decimal2", lowerIsBetter: false },
+  { key: "sg_approach", label: "SG: Approach", rankKey: "sg_approach_rank", format: "decimal2", lowerIsBetter: false },
+  { key: "sg_around_green", label: "SG: Around-the-Green", rankKey: "sg_around_green_rank", format: "decimal2", lowerIsBetter: false },
+  { key: "sg_putting", label: "SG: Putting", rankKey: "sg_putting_rank", format: "decimal2", lowerIsBetter: false },
+  { key: "birdie_avg", label: "Birdie Average", rankKey: "birdie_avg_rank", format: "decimal2", lowerIsBetter: false },
+  { key: "wins", label: "Wins", rankKey: "wins_rank", format: "int", lowerIsBetter: false },
+  { key: "top_10", label: "Top 10 Finishes", rankKey: "top_10_rank", format: "int", lowerIsBetter: false },
+  { key: "world_rank", label: "World Golf Ranking", rankKey: "world_rank", format: "int", lowerIsBetter: true },
 ] as const;
 
 export type StatKey = (typeof STAT_OPTIONS)[number]["key"];

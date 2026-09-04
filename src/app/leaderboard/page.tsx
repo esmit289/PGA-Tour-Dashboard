@@ -29,8 +29,9 @@ export default async function LeaderboardPage({
   const search = typeof sp.q === "string" ? sp.q : "";
 
   const statOption = STAT_OPTIONS.find((s) => s.key === stat) ?? STAT_OPTIONS[0];
-  const rows = await getLeaderboard(season, statOption.key, 100, {
+  const rows = await getLeaderboard(season, statOption.key, 1000, {
     search: search || undefined,
+    ascending: statOption.lowerIsBetter,
   });
 
   return (

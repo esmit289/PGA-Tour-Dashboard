@@ -17,15 +17,19 @@ import { SEASONS } from "@/lib/types";
 const LATEST_SEASON = SEASONS[SEASONS.length - 1];
 
 const LEADER_CARDS = [
-  { stat: "official_money" as const, label: "Money Leader", format: "money" },
-  { stat: "sg_total" as const, label: "SG: Total Leader", format: "decimal2" },
-  { stat: "scoring_avg" as const, label: "Scoring Avg Leader", format: "decimal3" },
-  { stat: "wins" as const, label: "Wins Leader", format: "int" },
+  { stat: "official_money" as const, label: "Money Leader", format: "money", lowerIsBetter: false },
+  { stat: "sg_total" as const, label: "SG: Total Leader", format: "decimal2", lowerIsBetter: false },
+  { stat: "scoring_avg" as const, label: "Scoring Avg Leader", format: "decimal3", lowerIsBetter: true },
+  { stat: "wins" as const, label: "Wins Leader", format: "int", lowerIsBetter: false },
 ];
 
 export default async function HomePage() {
   const [leaders, top5, avgTrend] = await Promise.all([
-    Promise.all(LEADER_CARDS.map((c) => getLeaderboard(LATEST_SEASON, c.stat, 1))),
+    Promise.all(
+      LEADER_CARDS.map((c) =>
+        getLeaderboard(LATEST_SEASON, c.stat, 1, { ascending: c.lowerIsBetter })
+      )
+    ),
     getLeaderboard(LATEST_SEASON, "sg_total", 5),
     getTourAverages("scoring_avg"),
   ]);
