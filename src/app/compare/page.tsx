@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/table";
 import { PlayerPicker } from "@/components/player-picker";
 import { CompareChart } from "@/components/compare-chart";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { getPlayer, getPlayerHistory } from "@/lib/queries";
-import { formatStat } from "@/lib/format";
+import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_OPTIONS } from "@/lib/types";
 
 const COMPARE_STATS = STAT_OPTIONS.filter((s) =>
@@ -69,13 +71,49 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
         </p>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <PlayerPicker paramKey="a" label="Player A" currentName={playerA?.player_name} />
-        <PlayerPicker paramKey="b" label="Player B" currentName={playerB?.player_name} />
-      </div>
+      {!(playerA && playerB) && (
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <PlayerPicker paramKey="a" label="Player A" currentName={playerA?.player_name} />
+          <PlayerPicker paramKey="b" label="Player B" currentName={playerB?.player_name} />
+        </div>
+      )}
 
       {playerA && playerB ? (
         <>
+          <Card className="border-border/60 overflow-hidden">
+            <CardContent className="flex flex-col items-center gap-6 py-8 sm:flex-row sm:justify-center sm:gap-10">
+              <div className="flex flex-col items-center gap-3">
+                <Avatar className="size-28 sm:size-32">
+                  <AvatarImage src={headshotUrl(playerA.player_id)} alt={playerA.player_name} />
+                  <AvatarFallback className="text-2xl">
+                    {initials(playerA.player_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <p className="text-lg font-bold">{playerA.player_name}</p>
+                  {playerA.country && <Badge variant="outline">{playerA.country}</Badge>}
+                </div>
+                <PlayerPicker paramKey="a" label="Swap player A" />
+              </div>
+
+              <span className="text-2xl font-black text-accent sm:text-3xl">VS</span>
+
+              <div className="flex flex-col items-center gap-3">
+                <Avatar className="size-28 sm:size-32">
+                  <AvatarImage src={headshotUrl(playerB.player_id)} alt={playerB.player_name} />
+                  <AvatarFallback className="text-2xl">
+                    {initials(playerB.player_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <p className="text-lg font-bold">{playerB.player_name}</p>
+                  {playerB.country && <Badge variant="outline">{playerB.country}</Badge>}
+                </div>
+                <PlayerPicker paramKey="b" label="Swap player B" />
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-border/60">
             <CardHeader>
               <CardTitle>

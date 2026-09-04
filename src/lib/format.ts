@@ -2,6 +2,15 @@ export function headshotUrl(playerId: string): string {
   return `https://pga-tour-res.cloudinary.com/image/upload/c_fill,d_headshots_default.png,f_auto,g_face:center,h_390,q_auto,w_390/headshots_${playerId}.png`;
 }
 
+export function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export function formatStat(value: number | null | undefined, format: string): string {
   if (value === null || value === undefined) return "—";
   switch (format) {

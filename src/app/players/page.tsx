@@ -1,20 +1,22 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { searchPlayers, getPlayersForBrowse } from "@/lib/queries";
+import { headshotUrl, initials } from "@/lib/format";
 
 export default async function PlayersPage({ searchParams }: PageProps<"/players">) {
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
 
-  const players = q ? await searchPlayers(q, 60) : await getPlayersForBrowse(60);
+  const players = q ? await searchPlayers(q, 100) : await getPlayersForBrowse();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Players</h1>
         <p className="text-muted-foreground">
-          {q ? `Results for "${q}"` : "Browse players, A–Z"}
+          {q ? `Results for "${q}"` : `Every player, A–Z (${players.length})`}
         </p>
       </div>
 
@@ -26,9 +28,15 @@ export default async function PlayersPage({ searchParams }: PageProps<"/players"
         {players.map((p) => (
           <Link key={p.player_id} href={`/players/${p.player_id}`}>
             <Card className="border-border/60 transition hover:border-primary/60 hover:bg-secondary/40">
-              <CardContent className="flex items-center justify-between py-4">
-                <span className="font-medium">{p.player_name}</span>
-                <span className="text-xs text-muted-foreground">{p.country ?? ""}</span>
+              <CardContent className="flex items-center gap-3 py-3">
+                <Avatar className="size-11">
+                  <AvatarImage src={headshotUrl(p.player_id)} alt={p.player_name} />
+                  <AvatarFallback>{initials(p.player_name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-1 items-center justify-between gap-2">
+                  <span className="font-medium">{p.player_name}</span>
+                  <span className="text-xs text-muted-foreground">{p.country ?? ""}</span>
+                </div>
               </CardContent>
             </Card>
           </Link>

@@ -86,15 +86,21 @@ export async function getPlayerHistory(playerId: string) {
   return (data ?? []) as PlayerSeasonStat[];
 }
 
-export async function getPlayersForBrowse(limit = 60) {
-  const { data, error } = await supabase
-    .from("players")
-    .select("*")
-    .order("player_name")
-    .limit(limit);
+export async function getPlayersForBrowse() {
+  const pageSize = 1000;
+  const all: Player[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("players")
+      .select("*")
+      .order("player_name")
+      .range(offset, offset + pageSize - 1);
 
-  if (error) throw error;
-  return (data ?? []) as Player[];
+    if (error) throw error;
+    all.push(...((data ?? []) as Player[]));
+    if (!data || data.length < pageSize) break;
+  }
+  return all;
 }
 
 export async function getSeasonSummary(season: number) {

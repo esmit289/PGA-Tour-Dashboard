@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendChart } from "@/components/trend-chart";
 import { getPlayer, getPlayerHistory } from "@/lib/queries";
-import { formatStat, headshotUrl } from "@/lib/format";
+import { formatStat, headshotUrl, initials } from "@/lib/format";
 
 export default async function PlayerPage({ params }: PageProps<"/players/[id]">) {
   const { id } = await params;
@@ -54,13 +54,7 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
               src={headshotUrl(player.player_id)}
               alt={player.player_name}
             />
-            <AvatarFallback className="text-lg">
-              {player.player_name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2)}
-            </AvatarFallback>
+            <AvatarFallback className="text-lg">{initials(player.player_name)}</AvatarFallback>
           </Avatar>
           <div>
             <Link href="/players" className="text-sm text-muted-foreground hover:underline">
