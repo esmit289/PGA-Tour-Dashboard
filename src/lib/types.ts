@@ -85,6 +85,15 @@ export const STAT_OPTIONS = [
   { key: "wins", label: "Wins", rankKey: "wins_rank", format: "int", lowerIsBetter: false },
   { key: "top_10", label: "Top 10 Finishes", rankKey: "top_10_rank", format: "int", lowerIsBetter: false },
   { key: "world_rank", label: "World Golf Ranking", rankKey: "world_rank", format: "int", lowerIsBetter: true },
+  { key: "putts_per_round", label: "Putts Per Round", rankKey: "putts_per_round_rank", format: "decimal2", lowerIsBetter: true },
+  { key: "sand_save_pct", label: "Sand Save %", rankKey: "sand_save_rank", format: "pct", lowerIsBetter: false },
+  { key: "sg_tee_to_green", label: "SG: Tee-to-Green", rankKey: "sg_tee_to_green_rank", format: "decimal2", lowerIsBetter: false },
+  { key: "total_birdies", label: "Total Birdies", rankKey: "total_birdies_rank", format: "int", lowerIsBetter: false },
+  { key: "total_eagles", label: "Total Eagles", rankKey: "total_eagles_rank", format: "int", lowerIsBetter: false },
+  { key: "birdie_or_better_pct", label: "Birdie or Better %", rankKey: "birdie_or_better_rank", format: "pct", lowerIsBetter: false },
+  { key: "bogey_avoidance_pct", label: "Bogey Avoidance (% holes bogeyed)", rankKey: "bogey_avoidance_rank", format: "pct", lowerIsBetter: true },
+  { key: "fedexcup_rank", label: "FedExCup Rank", rankKey: "fedexcup_rank", format: "int", lowerIsBetter: true },
+  { key: "all_around_rank", label: "All-Around Ranking", rankKey: "all_around_rank", format: "int", lowerIsBetter: true },
 ] as const;
 
 export type StatKey = (typeof STAT_OPTIONS)[number]["key"];

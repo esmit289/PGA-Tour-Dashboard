@@ -25,13 +25,23 @@ const COMPARE_STATS = STAT_OPTIONS.filter((s) =>
   [
     "scoring_avg",
     "sg_total",
+    "sg_off_the_tee",
+    "sg_approach",
+    "sg_around_green",
+    "sg_putting",
     "driving_distance",
     "driving_accuracy_pct",
     "gir_pct",
     "putting_avg",
+    "scrambling_pct",
+    "sand_save_pct",
+    "birdie_or_better_pct",
+    "bogey_avoidance_pct",
     "wins",
     "top_10",
     "official_money",
+    "fedexcup_rank",
+    "world_rank",
   ].includes(s.key)
 );
 
