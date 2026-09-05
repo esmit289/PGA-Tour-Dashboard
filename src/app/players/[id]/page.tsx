@@ -20,9 +20,15 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendChart } from "@/components/trend-chart";
 import { getPlayer, getPlayerHistory } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
+import { PROFILE_STAT_GROUPS } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-export default async function PlayerPage({ params }: PageProps<"/players/[id]">) {
+export default async function PlayerPage({
+  params,
+  searchParams,
+}: PageProps<"/players/[id]">) {
   const { id } = await params;
+  const sp = await searchParams;
 
   let player;
   try {
@@ -33,6 +39,13 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
 
   const history = await getPlayerHistory(id);
   if (!player || history.length === 0) notFound();
+
+  const availableSeasons = history.map((h) => h.season);
+  const requestedSeason = Number(sp.season);
+  const selectedSeason = availableSeasons.includes(requestedSeason)
+    ? requestedSeason
+    : availableSeasons[availableSeasons.length - 1];
+  const seasonStats = history.find((h) => h.season === selectedSeason)!;
 
   const totalWins = history.reduce((sum, h) => sum + (h.wins ?? 0), 0);
   const totalMoney = history.reduce((sum, h) => sum + (h.official_money ?? 0), 0);
@@ -122,7 +135,8 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
 
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle>Season-by-season stats</CardTitle>
+          <CardTitle>Career overview by season</CardTitle>
+          <CardDescription>Headline stats only — see full breakdown below</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -166,6 +180,64 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
                 ))}
               </TableBody>
             </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/60">
+        <CardHeader>
+          <CardTitle>Full stat breakdown — {selectedSeason}</CardTitle>
+          <CardDescription>Every recorded stat for this season, grouped by category</CardDescription>
+          <div className="flex flex-wrap gap-1.5 pt-2">
+            {[...availableSeasons].reverse().map((season) => (
+              <Link
+                key={season}
+                href={`/players/${player.player_id}?season=${season}`}
+                className={cn(
+                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                  season === selectedSeason
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {season}
+              </Link>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {PROFILE_STAT_GROUPS.map((group) => (
+              <div key={group.title}>
+                <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
+                  {group.title}
+                </h3>
+                <dl className="space-y-1.5">
+                  {group.stats.map((stat) => {
+                    const value = seasonStats[stat.key] as number | null;
+                    const rank = stat.rankKey
+                      ? (seasonStats[stat.rankKey] as number | null)
+                      : null;
+                    return (
+                      <div
+                        key={String(stat.key)}
+                        className="flex items-baseline justify-between gap-2 text-sm"
+                      >
+                        <dt className="text-muted-foreground">{stat.label}</dt>
+                        <dd className="font-medium">
+                          {formatStat(value, stat.format)}
+                          {rank !== null && rank !== undefined && (
+                            <span className="ml-1.5 text-xs text-muted-foreground">
+                              (#{rank})
+                            </span>
+                          )}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
