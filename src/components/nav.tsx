@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/players", label: "Players" },
   { href: "/compare", label: "Compare" },
+  { href: "/glossary", label: "Glossary" },
 ];
 
 export function Nav() {

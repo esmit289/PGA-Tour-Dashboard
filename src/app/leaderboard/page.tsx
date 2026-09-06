@@ -14,8 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LeaderboardFilters } from "@/components/leaderboard-filters";
+import { StatLabel } from "@/components/stat-label";
 import { getLeaderboard } from "@/lib/queries";
 import { formatStat } from "@/lib/format";
+import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { SEASONS, STAT_OPTIONS, type StatKey } from "@/lib/types";
 
 const LATEST_SEASON = SEASONS[SEASONS.length - 1];
@@ -39,7 +41,10 @@ export default async function LeaderboardPage({
       <div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Leaderboard</h1>
         <p className="text-muted-foreground">
-          Rank every player-season by any stat, {SEASONS[0]}–{SEASONS[SEASONS.length - 1]}.
+          Rank every player-season by any stat, {SEASONS[0]}–{SEASONS[SEASONS.length - 1]}.{" "}
+          <Link href="/glossary" className="underline hover:text-foreground">
+            New to golf stats?
+          </Link>
         </p>
       </div>
 
@@ -58,7 +63,13 @@ export default async function LeaderboardPage({
                   <TableHead className="w-12">Rank</TableHead>
                   <TableHead>Player</TableHead>
                   <TableHead>Country</TableHead>
-                  <TableHead className="text-right">{statOption.label}</TableHead>
+                  <TableHead className="text-right">
+                    <StatLabel
+                      label={statOption.label}
+                      description={STAT_DESCRIPTIONS[statOption.key]}
+                      align="end"
+                    />
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -10,8 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TrendChart } from "@/components/trend-chart";
+import { StatLabel } from "@/components/stat-label";
 import { getLeaderboard, getTourAverages } from "@/lib/queries";
 import { formatStat } from "@/lib/format";
+import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { SEASONS } from "@/lib/types";
 
 const LATEST_SEASON = SEASONS[SEASONS.length - 1];
@@ -65,6 +67,12 @@ export default async function HomePage() {
           >
             Browse players
           </Link>
+          <Link
+            href="/glossary"
+            className="rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline"
+          >
+            New to golf stats? Start here →
+          </Link>
         </div>
       </section>
 
@@ -75,7 +83,9 @@ export default async function HomePage() {
           return (
             <Card key={card.stat} className="border-border/60">
               <CardHeader className="pb-2">
-                <CardDescription>{card.label}</CardDescription>
+                <CardDescription>
+                  <StatLabel label={card.label} description={STAT_DESCRIPTIONS[card.stat]} />
+                </CardDescription>
                 <CardTitle className="text-lg">
                   {row ? row.players.player_name : "—"}
                 </CardTitle>

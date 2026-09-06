@@ -18,8 +18,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendChart } from "@/components/trend-chart";
+import { StatLabel } from "@/components/stat-label";
 import { getPlayer, getPlayerHistory } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
+import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { PROFILE_STAT_GROUPS } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -98,13 +100,17 @@ export default async function PlayerPage({
         </Card>
         <Card className="border-border/60">
           <CardHeader className="pb-2">
-            <CardDescription>Career Wins</CardDescription>
+            <CardDescription>
+              <StatLabel label="Career Wins" description={STAT_DESCRIPTIONS.wins} />
+            </CardDescription>
             <CardTitle className="text-2xl text-accent">{totalWins}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="border-border/60">
           <CardHeader className="pb-2">
-            <CardDescription>Career Official Money</CardDescription>
+            <CardDescription>
+              <StatLabel label="Career Official Money" description={STAT_DESCRIPTIONS.official_money} />
+            </CardDescription>
             <CardTitle className="text-2xl">{formatStat(totalMoney, "money")}</CardTitle>
           </CardHeader>
         </Card>
@@ -223,7 +229,9 @@ export default async function PlayerPage({
                         key={String(stat.key)}
                         className="flex items-baseline justify-between gap-2 text-sm"
                       >
-                        <dt className="text-muted-foreground">{stat.label}</dt>
+                        <dt className="text-muted-foreground">
+                          <StatLabel label={stat.label} description={STAT_DESCRIPTIONS[stat.key]} />
+                        </dt>
                         <dd className="font-medium">
                           {formatStat(value, stat.format)}
                           {rank !== null && rank !== undefined && (

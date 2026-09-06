@@ -15,10 +15,12 @@ import {
 } from "@/components/ui/table";
 import { PlayerPicker } from "@/components/player-picker";
 import { CompareChart } from "@/components/compare-chart";
+import { StatLabel } from "@/components/stat-label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getPlayer, getPlayerHistory } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
+import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { STAT_OPTIONS } from "@/lib/types";
 
 const COMPARE_STATS = STAT_OPTIONS.filter((s) =>
@@ -159,7 +161,9 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>Wins</TableCell>
+                    <TableCell>
+                      <StatLabel label="Wins" description={STAT_DESCRIPTIONS.wins} />
+                    </TableCell>
                     <TableCell className="text-right font-semibold text-accent">
                       {careerA.wins}
                     </TableCell>
@@ -168,12 +172,16 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Top 10s</TableCell>
+                    <TableCell>
+                      <StatLabel label="Top 10s" description={STAT_DESCRIPTIONS.top_10} />
+                    </TableCell>
                     <TableCell className="text-right">{careerA.top10}</TableCell>
                     <TableCell className="text-right">{careerB.top10}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Official Money</TableCell>
+                    <TableCell>
+                      <StatLabel label="Official Money" description={STAT_DESCRIPTIONS.official_money} />
+                    </TableCell>
                     <TableCell className="text-right">
                       {formatStat(careerA.money, "money")}
                     </TableCell>
@@ -182,7 +190,9 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Best Scoring Avg</TableCell>
+                    <TableCell>
+                      <StatLabel label="Best Scoring Avg" description={STAT_DESCRIPTIONS.scoring_avg} />
+                    </TableCell>
                     <TableCell className="text-right">
                       {formatStat(careerA.bestScoring, "decimal3")}
                     </TableCell>
@@ -191,7 +201,9 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Best SG: Total season</TableCell>
+                    <TableCell>
+                      <StatLabel label="Best SG: Total season" description={STAT_DESCRIPTIONS.sg_total} />
+                    </TableCell>
                     <TableCell className="text-right">
                       {formatStat(careerA.bestSg, "decimal2")}
                     </TableCell>
@@ -223,7 +235,9 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     const avgB = average(historyB.map((h) => h[opt.key] as number | null));
                     return (
                       <TableRow key={opt.key}>
-                        <TableCell>{opt.label}</TableCell>
+                        <TableCell>
+                          <StatLabel label={opt.label} description={STAT_DESCRIPTIONS[opt.key]} />
+                        </TableCell>
                         <TableCell className="text-right">
                           {formatStat(avgA, opt.format)}
                         </TableCell>
