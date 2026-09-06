@@ -13,12 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlayerPicker } from "@/components/player-picker";
+import { PlayerSelect } from "@/components/player-select";
 import { CompareChart } from "@/components/compare-chart";
 import { StatLabel } from "@/components/stat-label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getPlayer, getPlayerHistory } from "@/lib/queries";
+import { getPlayer, getPlayerHistory, getPlayersForBrowse } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { STAT_OPTIONS } from "@/lib/types";
@@ -52,9 +52,10 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
   const aId = typeof sp.a === "string" ? sp.a : undefined;
   const bId = typeof sp.b === "string" ? sp.b : undefined;
 
-  const [playerA, playerB] = await Promise.all([
+  const [playerA, playerB, allPlayers] = await Promise.all([
     aId ? getPlayer(aId).catch(() => null) : null,
     bId ? getPlayer(bId).catch(() => null) : null,
+    getPlayersForBrowse(),
   ]);
   const [historyA, historyB] = await Promise.all([
     aId ? getPlayerHistory(aId) : Promise.resolve([]),
@@ -85,8 +86,8 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
 
       {!(playerA && playerB) && (
         <div className="flex flex-col gap-4 sm:flex-row">
-          <PlayerPicker paramKey="a" label="Player A" currentName={playerA?.player_name} />
-          <PlayerPicker paramKey="b" label="Player B" currentName={playerB?.player_name} />
+          <PlayerSelect paramKey="a" label="Player A" players={allPlayers} currentId={aId} />
+          <PlayerSelect paramKey="b" label="Player B" players={allPlayers} currentId={bId} />
         </div>
       )}
 
@@ -105,7 +106,7 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                   <p className="text-lg font-bold">{playerA.player_name}</p>
                   {playerA.country && <Badge variant="outline">{playerA.country}</Badge>}
                 </div>
-                <PlayerPicker paramKey="a" label="Swap player A" />
+                <PlayerSelect paramKey="a" label="Swap player A" players={allPlayers} currentId={aId} />
               </div>
 
               <span className="text-2xl font-black text-accent sm:text-3xl">VS</span>
@@ -121,7 +122,7 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                   <p className="text-lg font-bold">{playerB.player_name}</p>
                   {playerB.country && <Badge variant="outline">{playerB.country}</Badge>}
                 </div>
-                <PlayerPicker paramKey="b" label="Swap player B" />
+                <PlayerSelect paramKey="b" label="Swap player B" players={allPlayers} currentId={bId} />
               </div>
             </CardContent>
           </Card>
@@ -254,7 +255,7 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
         </>
       ) : (
         <p className="text-muted-foreground">
-          Search and select two players above to see their comparison.
+          Pick two players from the dropdowns above to see their comparison.
         </p>
       )}
     </div>
