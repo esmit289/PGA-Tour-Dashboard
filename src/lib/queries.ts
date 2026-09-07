@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { Player, PlayerSeasonRow, PlayerSeasonStat, StatKey } from "@/lib/types";
+import type { ExtendedStatRow, Player, PlayerSeasonRow, PlayerSeasonStat, StatKey } from "@/lib/types";
 
 export async function getLeaderboard(
   season: number,
@@ -101,6 +101,17 @@ export async function getPlayersForBrowse() {
     if (!data || data.length < pageSize) break;
   }
   return all;
+}
+
+export async function getExtendedStatsForPlayer(playerId: string) {
+  const { data, error } = await supabase
+    .from("player_extended_stats")
+    .select("*")
+    .eq("player_id", playerId)
+    .order("season", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as ExtendedStatRow[];
 }
 
 export async function getSeasonSummary(season: number) {

@@ -19,11 +19,63 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendChart } from "@/components/trend-chart";
 import { StatLabel } from "@/components/stat-label";
-import { getPlayer, getPlayerHistory } from "@/lib/queries";
+import { getPlayer, getPlayerHistory, getExtendedStatsForPlayer } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
-import { PROFILE_STAT_GROUPS } from "@/lib/types";
+import { PROFILE_STAT_GROUPS, type ExtendedStatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+const EXTENDED_CATEGORY_ORDER = [
+  "Scoring",
+  "Off the Tee",
+  "Approach",
+  "Around the Green",
+  "Putting",
+  "Ratings",
+  "Team & Majors",
+  "Streaks",
+  "Recent Form",
+  "Swing Metrics",
+];
+
+// Sub-metric field names aren't consistent across PGA Tour's 72 stat
+// categories (e.g. "Avg", "Average Bogeys per round", or repeating the
+// category's own title verbatim), so pick the headline value by excluding
+// obvious denominator/count fields first, then preferring an exact "Avg"/"%"
+// match, then a field that echoes the stat's title, then any field whose
+// name suggests it's the summary metric.
+function pickHeadline(rows: ExtendedStatRow[]): ExtendedStatRow | undefined {
+  if (rows.length === 0) return undefined;
+
+  // A non-numeric sub-field (e.g. "Tourn/Course": "Charles Schwab/") can
+  // never be the headline number, so drop those first unless it's all
+  // we have.
+  const numeric = rows.filter((r) => r.numeric_value !== null);
+  let pool = numeric.length > 0 ? numeric : rows;
+
+  // "Total" is excluded only when it's a raw-count field like "Total
+  // Strokes" -- for composite stats like Total Driving, a bare "Total"
+  // (or "Combined Rank") IS the headline, so those are left alone and
+  // preferred explicitly below.
+  const isSupportingField = (name: string) =>
+    /^(total (strokes|holes?|distance|attempts|drives|birdies|bogeys|putts|rnds|rounds|dist)|rounds?( played)?|# of|measured|attempts|holes?|possible|tourn|course)/i.test(
+      name
+    );
+  const nonSupporting = pool.filter((r) => !isSupportingField(r.stat_name));
+  pool = nonSupporting.length > 0 ? nonSupporting : pool;
+
+  for (const name of ["Avg", "%", "Value", "Total", "Combined Rank"]) {
+    const exact = pool.find((r) => r.stat_name === name);
+    if (exact) return exact;
+  }
+  const titleEcho = pool.find((r) => r.stat_name === r.stat_title);
+  if (titleEcho) return titleEcho;
+  const keywordMatch = pool.find((r) =>
+    /avg|average|%|ratio|rating|streak|value|distance|combined/i.test(r.stat_name)
+  );
+  if (keywordMatch) return keywordMatch;
+  return pool[0];
+}
 
 export default async function PlayerPage({
   params,
@@ -48,6 +100,27 @@ export default async function PlayerPage({
     ? requestedSeason
     : availableSeasons[availableSeasons.length - 1];
   const seasonStats = history.find((h) => h.season === selectedSeason)!;
+
+  const extendedStats = await getExtendedStatsForPlayer(id);
+  const seasonExtended = extendedStats.filter((r) => r.season === selectedSeason);
+  const byStatKey = new Map<string, ExtendedStatRow[]>();
+  for (const r of seasonExtended) {
+    if (!byStatKey.has(r.stat_key)) byStatKey.set(r.stat_key, []);
+    byStatKey.get(r.stat_key)!.push(r);
+  }
+  const extendedByCategory = new Map<string, { key: string; title: string; row: ExtendedStatRow }[]>();
+  for (const [key, rows] of byStatKey) {
+    const headline = pickHeadline(rows);
+    if (!headline) continue;
+    const category = headline.stat_category || "Other";
+    if (!extendedByCategory.has(category)) extendedByCategory.set(category, []);
+    extendedByCategory.get(category)!.push({ key, title: headline.stat_title, row: headline });
+  }
+  const extendedCategories = [...extendedByCategory.keys()].sort((a, b) => {
+    const ai = EXTENDED_CATEGORY_ORDER.indexOf(a);
+    const bi = EXTENDED_CATEGORY_ORDER.indexOf(b);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
 
   const totalWins = history.reduce((sum, h) => sum + (h.wins ?? 0), 0);
   const totalMoney = history.reduce((sum, h) => sum + (h.official_money ?? 0), 0);
@@ -249,6 +322,53 @@ export default async function PlayerPage({
           </div>
         </CardContent>
       </Card>
+
+      {extendedCategories.length > 0 && (
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle>More Stats — {selectedSeason}</CardTitle>
+            <CardDescription>
+              72 additional categories pulled directly from PGA Tour&apos;s stats site
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {extendedCategories.map((category) => (
+                <div key={category}>
+                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
+                    {category}
+                  </h3>
+                  <dl className="space-y-1.5">
+                    {extendedByCategory
+                      .get(category)!
+                      .sort((a, b) => a.title.localeCompare(b.title))
+                      .map(({ key, title, row }) => {
+                        const display =
+                          !row.stat_value || row.stat_value === "-" ? "—" : row.stat_value;
+                        return (
+                          <div
+                            key={key}
+                            className="flex items-baseline justify-between gap-2 text-sm"
+                          >
+                            <dt className="text-muted-foreground">{title}</dt>
+                            <dd className="font-medium">
+                              {display}
+                              {row.rank !== null && (
+                                <span className="ml-1.5 text-xs text-muted-foreground">
+                                  (#{row.rank})
+                                </span>
+                              )}
+                            </dd>
+                          </div>
+                        );
+                      })}
+                  </dl>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

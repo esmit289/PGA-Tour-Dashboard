@@ -68,6 +68,23 @@ export type PlayerSeasonRow = PlayerSeasonStat & {
   players: Player;
 };
 
+// One row per (season, player, stat category, sub-metric) from the
+// curated 72-category PGA Tour stat pull beyond the original 25 core
+// stats -- normalized "long" format since categories like Driving
+// Distance return several sub-metrics (Avg / Total Distance / Total
+// Drives) rather than a single value.
+export interface ExtendedStatRow {
+  season: number;
+  player_id: string;
+  stat_key: string;
+  stat_category: string;
+  stat_title: string;
+  stat_name: string;
+  stat_value: string | null;
+  numeric_value: number | null;
+  rank: number | null;
+}
+
 export const STAT_OPTIONS = [
   { key: "sg_total", label: "SG: Total", rankKey: "sg_total_rank", format: "decimal2", lowerIsBetter: false },
   { key: "scoring_avg", label: "Scoring Average", rankKey: "scoring_avg_rank", format: "decimal3", lowerIsBetter: true },

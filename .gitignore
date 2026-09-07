@@ -44,3 +44,6 @@ next-env.d.ts
 # python
 __pycache__/
 *.pyc
+
+# regeneratable data dumps (run fetch_extended_stats.py to recreate)
+scripts/extended_stats_raw/
