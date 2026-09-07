@@ -24,6 +24,7 @@ import { getPlayer, getPlayerHistory, getExtendedStatsForPlayer } from "@/lib/qu
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { GOLF_BAGS } from "@/lib/golf-bags";
+import { GolfBagIllustration } from "@/components/golf-bag-illustration";
 import { PROFILE_STAT_GROUPS, type ExtendedStatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -187,31 +188,34 @@ export default async function PlayerPage({
             <CardDescription>Current equipment setup, as of {bag.updated}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {bag.items.map((item, i) => {
-                const Icon = BAG_CATEGORY_ICONS[item.category] ?? CircleDot;
-                return (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3"
-                  >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
-                      <Icon className="size-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {item.category}
-                      </p>
-                      <p className="truncate font-medium">
-                        {item.brand} {item.model}
-                      </p>
-                      {item.detail && (
-                        <p className="text-xs text-muted-foreground">{item.detail}</p>
-                      )}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
+              <GolfBagIllustration items={bag.items} />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {bag.items.map((item, i) => {
+                  const Icon = BAG_CATEGORY_ICONS[item.category] ?? CircleDot;
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3"
+                    >
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                        <Icon className="size-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          {item.category}
+                        </p>
+                        <p className="truncate font-medium">
+                          {item.brand} {item.model}
+                        </p>
+                        {item.detail && (
+                          <p className="text-xs text-muted-foreground">{item.detail}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </CardContent>
         </Card>
