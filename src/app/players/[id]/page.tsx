@@ -134,6 +134,22 @@ export default async function PlayerPage({
     .filter((h) => h.sg_total !== null)
     .map((h) => ({ season: h.season, value: h.sg_total as number }));
 
+  // Skip seasons where every column shown in the overview table is empty
+  // (the player has a row for that year, but nothing in these 8 headline
+  // stats) so the table doesn't waste space on blank-looking seasons.
+  const overviewRows = [...history].reverse().filter((h) =>
+    [
+      h.scoring_avg,
+      h.sg_total,
+      h.driving_distance,
+      h.gir_pct,
+      h.wins,
+      h.top_10,
+      h.official_money,
+      h.fedexcup_rank,
+    ].some((v) => v !== null && v !== undefined)
+  );
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -235,7 +251,7 @@ export default async function PlayerPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[...history].reverse().map((h) => (
+                {overviewRows.map((h) => (
                   <TableRow key={h.season}>
                     <TableCell className="font-medium">{h.season}</TableCell>
                     <TableCell className="text-right">
