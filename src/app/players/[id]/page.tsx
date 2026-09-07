@@ -189,22 +189,7 @@ export default async function PlayerPage({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
-              {bag.bagImageUrl ? (
-                <div className="flex flex-col items-center gap-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={bag.bagImageUrl}
-                    alt={bag.bagImageAlt ?? "Golf bag"}
-                    className="h-56 w-auto max-w-[240px] rounded-lg object-contain"
-                    loading="lazy"
-                  />
-                  <p className="text-center text-xs text-muted-foreground">
-                    {bag.bagImageAlt} (retail model)
-                  </p>
-                </div>
-              ) : (
-                <GolfBagIllustration items={bag.items} />
-              )}
+              <GolfBagIllustration items={bag.items} />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {bag.items.map((item, i) => {
                   const Icon = BAG_CATEGORY_ICONS[item.category] ?? CircleDot;

@@ -8,11 +8,6 @@ export interface BagItem {
 export interface PlayerBag {
   updated: string;
   items: BagItem[];
-  // Product photo of the actual tour staff bag model this player carries
-  // (retail/generic version — pros' personal bags are embroidered with
-  // their name, which isn't sold, but it's the identical bag design).
-  bagImageUrl?: string;
-  bagImageAlt?: string;
 }
 
 // Curated "What's In The Bag" data for a handful of players, sourced from
@@ -23,8 +18,6 @@ export const GOLF_BAGS: Record<string, PlayerBag> = {
   // Scottie Scheffler
   "46046": {
     updated: "August 2026",
-    bagImageUrl: "https://golfdirectnow.com/cdn/shop/files/m23690_zoom_d_grande.jpg?v=1771539771",
-    bagImageAlt: "TaylorMade Qi4D Tour Staff Bag",
     items: [
       { category: "Driver", brand: "TaylorMade", model: "Qi4D", detail: "8° (set to 7.8°)" },
       { category: "Fairway Wood", brand: "TaylorMade", model: "Qi10", detail: "3-wood, 15° (set to 13.5°)" },
@@ -39,8 +32,6 @@ export const GOLF_BAGS: Record<string, PlayerBag> = {
   // Rory McIlroy
   "28237": {
     updated: "June 2026",
-    bagImageUrl: "https://golfdirectnow.com/cdn/shop/files/m23690_zoom_d_grande.jpg?v=1771539771",
-    bagImageAlt: "TaylorMade Qi4D Tour Staff Bag",
     items: [
       { category: "Driver", brand: "TaylorMade", model: "Qi4D", detail: "9°" },
       { category: "Fairway Wood", brand: "TaylorMade", model: "Qi10", detail: "3-wood, 15°" },
@@ -55,8 +46,6 @@ export const GOLF_BAGS: Record<string, PlayerBag> = {
   // Cameron Young
   "57366": {
     updated: "August 2026",
-    bagImageUrl: "https://www.golfio.com/cdn/shop/products/via0523-black-white_1.jpg?v=1687502445&width=1000",
-    bagImageAlt: "Titleist Tour Staff Bag",
     items: [
       { category: "Driver", brand: "Titleist", model: "GTS3", detail: "10°" },
       { category: "Fairway Wood", brand: "Titleist", model: "GTS3", detail: "3-wood, 16.5°" },
@@ -73,8 +62,6 @@ export const GOLF_BAGS: Record<string, PlayerBag> = {
   // Xander Schauffele
   "48081": {
     updated: "July 2026",
-    bagImageUrl: "https://golfdirectnow.com/cdn/shop/files/197193907145_grande.jpg?v=1774466760",
-    bagImageAlt: "Callaway Quantum Tour Staff Bag",
     items: [
       { category: "Driver", brand: "Callaway", model: "Paradym Ai Smoke Triple Diamond", detail: "10.5°" },
       { category: "Fairway Wood", brand: "Callaway", model: "Quantum Triple Diamond", detail: "3HL, 16.5°" },
@@ -89,8 +76,6 @@ export const GOLF_BAGS: Record<string, PlayerBag> = {
   // Collin Morikawa
   "50525": {
     updated: "June 2026",
-    bagImageUrl: "https://golfdirectnow.com/cdn/shop/files/m23690_zoom_d_grande.jpg?v=1771539771",
-    bagImageAlt: "TaylorMade Qi4D Tour Staff Bag",
     items: [
       { category: "Driver", brand: "TaylorMade", model: "Qi4D LS", detail: "8°" },
       { category: "Fairway Wood", brand: "TaylorMade", model: "SIM Ti", detail: "3-wood, 14°" },
