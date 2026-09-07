@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlayerSelect } from "@/components/player-select";
+import { PlayerCombobox } from "@/components/player-combobox";
 import { CompareChart } from "@/components/compare-chart";
 import { StatLabel } from "@/components/stat-label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -86,8 +86,8 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
 
       {!(playerA && playerB) && (
         <div className="flex flex-col gap-4 sm:flex-row">
-          <PlayerSelect paramKey="a" label="Player A" players={allPlayers} currentId={aId} />
-          <PlayerSelect paramKey="b" label="Player B" players={allPlayers} currentId={bId} />
+          <PlayerCombobox paramKey="a" label="Player A" players={allPlayers} currentId={aId} />
+          <PlayerCombobox paramKey="b" label="Player B" players={allPlayers} currentId={bId} />
         </div>
       )}
 
@@ -106,7 +106,7 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                   <p className="text-lg font-bold">{playerA.player_name}</p>
                   {playerA.country && <Badge variant="outline">{playerA.country}</Badge>}
                 </div>
-                <PlayerSelect paramKey="a" label="Swap player A" players={allPlayers} currentId={aId} />
+                <PlayerCombobox paramKey="a" label="Swap player A" players={allPlayers} currentId={aId} />
               </div>
 
               <span className="text-2xl font-black text-accent sm:text-3xl">VS</span>
@@ -122,7 +122,7 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                   <p className="text-lg font-bold">{playerB.player_name}</p>
                   {playerB.country && <Badge variant="outline">{playerB.country}</Badge>}
                 </div>
-                <PlayerSelect paramKey="b" label="Swap player B" players={allPlayers} currentId={bId} />
+                <PlayerCombobox paramKey="b" label="Swap player B" players={allPlayers} currentId={bId} />
               </div>
             </CardContent>
           </Card>
