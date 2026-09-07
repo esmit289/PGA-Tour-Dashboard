@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Rocket, Trees, Shuffle, Layers, Wind, Flag, CircleDot } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,21 +22,8 @@ import { StatLabel } from "@/components/stat-label";
 import { getPlayer, getPlayerHistory, getExtendedStatsForPlayer } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
-import { GOLF_BAGS } from "@/lib/golf-bags";
-import { GolfBagIllustration } from "@/components/golf-bag-illustration";
 import { PROFILE_STAT_GROUPS, type ExtendedStatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const BAG_CATEGORY_ICONS: Record<string, typeof Rocket> = {
-  Driver: Rocket,
-  "Fairway Wood": Trees,
-  Hybrid: Shuffle,
-  "Utility Iron": Layers,
-  Irons: Layers,
-  Wedges: Wind,
-  Putter: Flag,
-  Ball: CircleDot,
-};
 
 const EXTENDED_CATEGORY_ORDER = [
   "Scoring",
@@ -107,8 +93,6 @@ export default async function PlayerPage({
 
   const history = await getPlayerHistory(id);
   if (!player || history.length === 0) notFound();
-
-  const bag = GOLF_BAGS[player.player_id];
 
   const availableSeasons = history.map((h) => h.season);
   const requestedSeason = Number(sp.season);
@@ -180,46 +164,6 @@ export default async function PlayerPage({
           </Link>
         </div>
       </div>
-
-      {bag && (
-        <Card className="border-border/60 overflow-hidden bg-gradient-to-br from-primary/8 via-transparent to-accent/8">
-          <CardHeader>
-            <CardTitle>In the Bag</CardTitle>
-            <CardDescription>Current equipment setup, as of {bag.updated}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
-              <GolfBagIllustration items={bag.items} />
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {bag.items.map((item, i) => {
-                  const Icon = BAG_CATEGORY_ICONS[item.category] ?? CircleDot;
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3"
-                    >
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
-                        <Icon className="size-4" />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-muted-foreground">
-                          {item.category}
-                        </p>
-                        <p className="truncate font-medium">
-                          {item.brand} {item.model}
-                        </p>
-                        {item.detail && (
-                          <p className="text-xs text-muted-foreground">{item.detail}</p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-border/60">
