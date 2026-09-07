@@ -27,13 +27,19 @@ export async function getLeaderboard(
 }
 
 export async function getTourAverages(stat: StatKey) {
-  const { data, error } = await supabase
-    .from("player_season_stats")
-    .select(`season, ${stat}`)
-    .not(stat, "is", null);
+  const pageSize = 1000;
+  const rows: Record<string, number>[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("player_season_stats")
+      .select(`season, ${stat}`)
+      .not(stat, "is", null)
+      .range(offset, offset + pageSize - 1);
 
-  if (error) throw error;
-  const rows = (data ?? []) as unknown as Record<string, number>[];
+    if (error) throw error;
+    rows.push(...((data ?? []) as unknown as Record<string, number>[]));
+    if (!data || data.length < pageSize) break;
+  }
 
   const bySeason = new Map<number, number[]>();
   for (const row of rows) {
@@ -104,14 +110,21 @@ export async function getPlayersForBrowse() {
 }
 
 export async function getExtendedStatsForPlayer(playerId: string) {
-  const { data, error } = await supabase
-    .from("player_extended_stats")
-    .select("*")
-    .eq("player_id", playerId)
-    .order("season", { ascending: true });
+  const pageSize = 1000;
+  const all: ExtendedStatRow[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("player_extended_stats")
+      .select("*")
+      .eq("player_id", playerId)
+      .order("season", { ascending: true })
+      .range(offset, offset + pageSize - 1);
 
-  if (error) throw error;
-  return (data ?? []) as ExtendedStatRow[];
+    if (error) throw error;
+    all.push(...((data ?? []) as ExtendedStatRow[]));
+    if (!data || data.length < pageSize) break;
+  }
+  return all;
 }
 
 export async function getSeasonSummary(season: number) {
