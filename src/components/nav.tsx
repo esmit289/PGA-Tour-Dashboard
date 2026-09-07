@@ -22,7 +22,7 @@ export function Nav() {
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
             ⛳
           </span>
-          <span className="text-sm font-semibold tracking-wide sm:text-base">
+          <span className="font-heading text-base font-bold tracking-wide sm:text-lg">
             PGA TOUR <span className="text-accent">STATS LAB</span>
           </span>
         </Link>

@@ -75,7 +75,7 @@ export default async function PlayerPage({
             <Link href="/players" className="text-sm text-muted-foreground hover:underline">
               ← All players
             </Link>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="text-2xl font-heading font-bold sm:text-3xl">
               {player.player_name}
             </h1>
             {player.country && <Badge variant="outline">{player.country}</Badge>}

@@ -14,7 +14,7 @@ export default async function PlayersPage({ searchParams }: PageProps<"/players"
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Players</h1>
+        <h1 className="text-2xl font-heading font-bold sm:text-3xl">Players</h1>
         <p className="text-muted-foreground">
           {q ? `Results for "${q}"` : `Every player, A–Z (${players.length})`}
         </p>

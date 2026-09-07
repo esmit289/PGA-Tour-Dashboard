@@ -6,7 +6,7 @@ export default function GlossaryPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-10 px-4 py-10 sm:px-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Golf Stats, Explained</h1>
+        <h1 className="text-2xl font-heading font-bold sm:text-3xl">Golf Stats, Explained</h1>
         <p className="text-muted-foreground">
           No golf background needed. Here&apos;s what every number on this site actually means.
         </p>

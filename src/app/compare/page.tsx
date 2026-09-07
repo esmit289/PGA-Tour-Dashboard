@@ -78,7 +78,7 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Compare Players</h1>
+        <h1 className="text-2xl font-heading font-bold sm:text-3xl">Compare Players</h1>
         <p className="text-muted-foreground">
           Pick two players to compare career stats, side by side.
         </p>
@@ -109,7 +109,7 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                 <PlayerCombobox paramKey="a" label="Swap player A" players={allPlayers} currentId={aId} />
               </div>
 
-              <span className="text-2xl font-black text-accent sm:text-3xl">VS</span>
+              <span className="font-heading text-3xl font-black text-accent sm:text-4xl">VS</span>
 
               <div className="flex flex-col items-center gap-3">
                 <Avatar className="size-28 sm:size-32">

@@ -89,7 +89,7 @@ export default async function HomePage() {
           <Badge variant="outline" className="border-accent/50 bg-accent/10 text-accent-foreground">
             ⛳ 10 seasons · 2016–2026
           </Badge>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+          <h1 className="text-3xl font-heading font-bold sm:text-5xl">
             A decade of the <span className="text-primary">PGA Tour</span>,
             <br />
             in the numbers.
@@ -148,7 +148,7 @@ export default async function HomePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className={`text-2xl font-bold ${VALUE_TEXT_CLASSES[card.color]}`}>
+                <p className={`font-heading text-3xl font-bold ${VALUE_TEXT_CLASSES[card.color]}`}>
                   {formatStat(value, card.format)}
                 </p>
                 <p className="text-xs text-muted-foreground">{LATEST_SEASON} season</p>
