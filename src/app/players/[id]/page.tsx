@@ -28,10 +28,13 @@ import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { PlayerDashboardExperiment } from "@/components/dashboard-experiment-profile";
 
-// One-player design experiment (see fetch_tournament_results.py): only
-// these players get the alternate Tableau-style layout. Expand this list
-// (and re-run the fetch/load scripts) to roll it out further.
-const DASHBOARD_EXPERIMENT_PLAYER_IDS = ["28237"]; // Rory McIlroy
+// Tableau-style dashboard design experiment (see fetch_tournament_results.py,
+// load_tournament_results.py, and src/components/dashboard-experiment-*.tsx).
+// Currently switched off -- every player uses the standard layout below.
+// To bring it back: add player IDs here (it shipped tested against "28237",
+// Rory McIlroy), then run fetch_tournament_results.py and
+// load_tournament_results.py for whichever players you add.
+const DASHBOARD_EXPERIMENT_PLAYER_IDS: string[] = [];
 
 export default async function PlayerPage({ params }: PageProps<"/players/[id]">) {
   const { id } = await params;
