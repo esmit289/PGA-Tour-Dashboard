@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BarChart3 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,69 +8,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendChart } from "@/components/trend-chart";
+import { SgBreakdownChart } from "@/components/sg-breakdown-chart";
+import { SeasonBarChart } from "@/components/season-bar-chart";
+import { WinsTop10Chart } from "@/components/wins-top10-chart";
 import { StatLabel } from "@/components/stat-label";
-import { getPlayer, getPlayerHistory, getExtendedStatsForPlayer } from "@/lib/queries";
+import { getPlayer, getPlayerHistory } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
-import { STAT_DESCRIPTIONS, EXTENDED_STAT_DESCRIPTIONS, EXTENDED_CATEGORY_ORDER } from "@/lib/glossary";
-import { PROFILE_STAT_GROUPS, type ExtendedStatRow } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 
-// Sub-metric field names aren't consistent across PGA Tour's 72 stat
-// categories (e.g. "Avg", "Average Bogeys per round", or repeating the
-// category's own title verbatim), so pick the headline value by excluding
-// obvious denominator/count fields first, then preferring an exact "Avg"/"%"
-// match, then a field that echoes the stat's title, then any field whose
-// name suggests it's the summary metric.
-function pickHeadline(rows: ExtendedStatRow[]): ExtendedStatRow | undefined {
-  if (rows.length === 0) return undefined;
-
-  // A non-numeric sub-field (e.g. "Tourn/Course": "Charles Schwab/") can
-  // never be the headline number, so drop those first unless it's all
-  // we have.
-  const numeric = rows.filter((r) => r.numeric_value !== null);
-  let pool = numeric.length > 0 ? numeric : rows;
-
-  // "Total" is excluded only when it's a raw-count field like "Total
-  // Strokes" -- for composite stats like Total Driving, a bare "Total"
-  // (or "Combined Rank") IS the headline, so those are left alone and
-  // preferred explicitly below.
-  const isSupportingField = (name: string) =>
-    /^(total (strokes|holes?|distance|attempts|drives|birdies|bogeys|putts|rnds|rounds|dist)|rounds?( played)?|# of|measured|attempts|holes?|possible|tourn|course)/i.test(
-      name
-    );
-  const nonSupporting = pool.filter((r) => !isSupportingField(r.stat_name));
-  pool = nonSupporting.length > 0 ? nonSupporting : pool;
-
-  for (const name of ["Avg", "%", "Value", "Total", "Combined Rank"]) {
-    const exact = pool.find((r) => r.stat_name === name);
-    if (exact) return exact;
-  }
-  const titleEcho = pool.find((r) => r.stat_name === r.stat_title);
-  if (titleEcho) return titleEcho;
-  const keywordMatch = pool.find((r) =>
-    /avg|average|%|ratio|rating|streak|value|distance|combined/i.test(r.stat_name)
-  );
-  if (keywordMatch) return keywordMatch;
-  return pool[0];
-}
-
-export default async function PlayerPage({
-  params,
-  searchParams,
-}: PageProps<"/players/[id]">) {
+export default async function PlayerPage({ params }: PageProps<"/players/[id]">) {
   const { id } = await params;
-  const sp = await searchParams;
 
   let player;
   try {
@@ -81,35 +32,6 @@ export default async function PlayerPage({
   const history = await getPlayerHistory(id);
   if (!player || history.length === 0) notFound();
 
-  const availableSeasons = history.map((h) => h.season);
-  const requestedSeason = Number(sp.season);
-  const selectedSeason = availableSeasons.includes(requestedSeason)
-    ? requestedSeason
-    : availableSeasons[availableSeasons.length - 1];
-  const seasonStats = history.find((h) => h.season === selectedSeason)!;
-
-  const extendedStats = await getExtendedStatsForPlayer(id);
-  const seasonExtended = extendedStats.filter((r) => r.season === selectedSeason);
-  const byStatKey = new Map<string, ExtendedStatRow[]>();
-  for (const r of seasonExtended) {
-    if (!byStatKey.has(r.stat_key)) byStatKey.set(r.stat_key, []);
-    byStatKey.get(r.stat_key)!.push(r);
-  }
-  const extendedByCategory = new Map<string, { key: string; title: string; row: ExtendedStatRow }[]>();
-  for (const [key, rows] of byStatKey) {
-    const headline = pickHeadline(rows);
-    if (!headline) continue;
-    if (!headline.stat_value || headline.stat_value === "-") continue;
-    const category = headline.stat_category || "Other";
-    if (!extendedByCategory.has(category)) extendedByCategory.set(category, []);
-    extendedByCategory.get(category)!.push({ key, title: headline.stat_title, row: headline });
-  }
-  const extendedCategories = [...extendedByCategory.keys()].sort((a, b) => {
-    const ai = EXTENDED_CATEGORY_ORDER.indexOf(a);
-    const bi = EXTENDED_CATEGORY_ORDER.indexOf(b);
-    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-  });
-
   const totalWins = history.reduce((sum, h) => sum + (h.wins ?? 0), 0);
   const totalMoney = history.reduce((sum, h) => sum + (h.official_money ?? 0), 0);
   const bestSg = Math.max(...history.map((h) => h.sg_total ?? -Infinity));
@@ -120,41 +42,38 @@ export default async function PlayerPage({
   const sgTrend = history
     .filter((h) => h.sg_total !== null)
     .map((h) => ({ season: h.season, value: h.sg_total as number }));
+  const drivingTrend = history
+    .filter((h) => h.driving_distance !== null)
+    .map((h) => ({ season: h.season, value: h.driving_distance as number }));
+  const girTrend = history
+    .filter((h) => h.gir_pct !== null)
+    .map((h) => ({ season: h.season, value: h.gir_pct as number }));
+  const moneyTrend = history
+    .filter((h) => h.official_money !== null)
+    .map((h) => ({ season: h.season, value: h.official_money as number }));
+  const winsTop10Data = history
+    .filter((h) => h.wins !== null || h.top_10 !== null)
+    .map((h) => ({ season: h.season, wins: h.wins ?? 0, top10: h.top_10 ?? 0 }));
 
-  // Skip seasons where every column shown in the overview table is empty
-  // (the player has a row for that year, but nothing in these 8 headline
-  // stats) so the table doesn't waste space on blank-looking seasons.
-  const overviewRows = [...history].reverse().filter((h) =>
-    [
-      h.scoring_avg,
-      h.sg_total,
-      h.driving_distance,
-      h.gir_pct,
-      h.wins,
-      h.top_10,
-      h.official_money,
-      h.fedexcup_rank,
-    ].some((v) => v !== null && v !== undefined)
-  );
+  const sgBreakdownSeason = [...history]
+    .reverse()
+    .find((h) =>
+      [h.sg_off_the_tee, h.sg_approach, h.sg_around_green, h.sg_putting].some((v) => v !== null)
+    );
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <Avatar className="size-20 sm:size-24">
-            <AvatarImage
-              src={headshotUrl(player.player_id)}
-              alt={player.player_name}
-            />
+            <AvatarImage src={headshotUrl(player.player_id)} alt={player.player_name} />
             <AvatarFallback className="text-lg">{initials(player.player_name)}</AvatarFallback>
           </Avatar>
           <div>
             <Link href="/players" className="text-sm text-muted-foreground hover:underline">
               ← All players
             </Link>
-            <h1 className="text-2xl font-heading font-bold sm:text-3xl">
-              {player.player_name}
-            </h1>
+            <h1 className="text-2xl font-heading font-bold sm:text-3xl">{player.player_name}</h1>
             {player.country && <Badge variant="outline">{player.country}</Badge>}
           </div>
         </div>
@@ -172,7 +91,7 @@ export default async function PlayerPage({
         <Card className="border-border/60">
           <CardHeader className="pb-2">
             <CardDescription>Seasons on Tour</CardDescription>
-            <CardTitle className="text-2xl">{history.length}</CardTitle>
+            <CardTitle className="font-heading text-3xl">{history.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="border-border/60">
@@ -180,7 +99,7 @@ export default async function PlayerPage({
             <CardDescription>
               <StatLabel label="Career Wins" description={STAT_DESCRIPTIONS.wins} />
             </CardDescription>
-            <CardTitle className="text-2xl text-accent">{totalWins}</CardTitle>
+            <CardTitle className="font-heading text-3xl text-accent">{totalWins}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="border-border/60">
@@ -188,7 +107,9 @@ export default async function PlayerPage({
             <CardDescription>
               <StatLabel label="Career Official Money" description={STAT_DESCRIPTIONS.official_money} />
             </CardDescription>
-            <CardTitle className="text-2xl">{formatStat(totalMoney, "money")}</CardTitle>
+            <CardTitle className="font-heading text-3xl">
+              {formatStat(totalMoney, "money")}
+            </CardTitle>
           </CardHeader>
         </Card>
       </section>
@@ -216,170 +137,78 @@ export default async function PlayerPage({
         </Card>
       </section>
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle>Career overview by season</CardTitle>
-          <CardDescription>Headline stats only — see full breakdown below</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Season</TableHead>
-                  <TableHead className="text-right">Scoring Avg</TableHead>
-                  <TableHead className="text-right">SG: Total</TableHead>
-                  <TableHead className="text-right">Driving Dist</TableHead>
-                  <TableHead className="text-right">GIR %</TableHead>
-                  <TableHead className="text-right">Wins</TableHead>
-                  <TableHead className="text-right">Top 10s</TableHead>
-                  <TableHead className="text-right">Money</TableHead>
-                  <TableHead className="text-right">FedExCup Rank</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {overviewRows.map((h) => (
-                  <TableRow key={h.season}>
-                    <TableCell className="font-medium">{h.season}</TableCell>
-                    <TableCell className="text-right">
-                      {formatStat(h.scoring_avg, "decimal3")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatStat(h.sg_total, "decimal2")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatStat(h.driving_distance, "decimal1")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatStat(h.gir_pct, "pct")}
-                    </TableCell>
-                    <TableCell className="text-right">{h.wins ?? "—"}</TableCell>
-                    <TableCell className="text-right">{h.top_10 ?? "—"}</TableCell>
-                    <TableCell className="text-right">
-                      {formatStat(h.official_money, "money")}
-                    </TableCell>
-                    <TableCell className="text-right">{h.fedexcup_rank ?? "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle>Full stat breakdown — {selectedSeason}</CardTitle>
-          <CardDescription>Every recorded stat for this season, grouped by category</CardDescription>
-          <div className="flex flex-wrap gap-1.5 pt-2">
-            {[...availableSeasons].reverse().map((season) => (
-              <Link
-                key={season}
-                href={`/players/${player.player_id}?season=${season}`}
-                className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                  season === selectedSeason
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {season}
-              </Link>
-            ))}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {PROFILE_STAT_GROUPS.map((group) => {
-              const visibleStats = group.stats.filter((stat) => {
-                const value = seasonStats[stat.key] as number | null;
-                return value !== null && value !== undefined;
-              });
-              if (visibleStats.length === 0) return null;
-              return (
-                <div key={group.title}>
-                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
-                    {group.title}
-                  </h3>
-                  <dl className="space-y-1.5">
-                    {visibleStats.map((stat) => {
-                      const value = seasonStats[stat.key] as number | null;
-                      const rank = stat.rankKey
-                        ? (seasonStats[stat.rankKey] as number | null)
-                        : null;
-                      return (
-                        <div
-                          key={String(stat.key)}
-                          className="flex items-baseline justify-between gap-2 text-sm"
-                        >
-                          <dt className="text-muted-foreground">
-                            <StatLabel label={stat.label} description={STAT_DESCRIPTIONS[stat.key]} />
-                          </dt>
-                          <dd className="font-medium">
-                            {formatStat(value, stat.format)}
-                            {rank !== null && rank !== undefined && (
-                              <span className="ml-1.5 text-xs text-muted-foreground">
-                                (#{rank})
-                              </span>
-                            )}
-                          </dd>
-                        </div>
-                      );
-                    })}
-                  </dl>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {extendedCategories.length > 0 && (
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="border-border/60">
           <CardHeader>
-            <CardTitle>More Stats — {selectedSeason}</CardTitle>
-            <CardDescription>
-              72 additional categories pulled directly from PGA Tour&apos;s stats site
-            </CardDescription>
+            <CardTitle>Driving distance by season</CardTitle>
+            <CardDescription>Average yards per drive</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {extendedCategories.map((category) => (
-                <div key={category}>
-                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
-                    {category}
-                  </h3>
-                  <dl className="space-y-1.5">
-                    {extendedByCategory
-                      .get(category)!
-                      .sort((a, b) => a.title.localeCompare(b.title))
-                      .map(({ key, title, row }) => {
-                        return (
-                          <div
-                            key={key}
-                            className="flex items-baseline justify-between gap-2 text-sm"
-                          >
-                            <dt className="text-muted-foreground">
-                              <StatLabel label={title} description={EXTENDED_STAT_DESCRIPTIONS[key]} />
-                            </dt>
-                            <dd className="font-medium">
-                              {row.stat_value}
-                              {row.rank !== null && (
-                                <span className="ml-1.5 text-xs text-muted-foreground">
-                                  (#{row.rank})
-                                </span>
-                              )}
-                            </dd>
-                          </div>
-                        );
-                      })}
-                  </dl>
-                </div>
-              ))}
-            </div>
+            <TrendChart data={drivingTrend} label="Driving distance" format="decimal1" />
           </CardContent>
         </Card>
-      )}
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle>Greens in Regulation by season</CardTitle>
+            <CardDescription>Higher is better</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TrendChart data={girTrend} label="GIR %" format="pct" />
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle>
+              Strokes gained breakdown{sgBreakdownSeason ? ` — ${sgBreakdownSeason.season}` : ""}
+            </CardTitle>
+            <CardDescription>Where their game gains or loses strokes on the field</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SgBreakdownChart values={sgBreakdownSeason ?? {}} />
+          </CardContent>
+        </Card>
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle>Official money by season</CardTitle>
+            <CardDescription>Prize money from official Tour events</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SeasonBarChart data={moneyTrend} label="Money" format="money" color="var(--chart-3)" />
+          </CardContent>
+        </Card>
+      </section>
+
+      <Card className="border-border/60">
+        <CardHeader>
+          <CardTitle>Wins &amp; Top 10 finishes by season</CardTitle>
+          <CardDescription>Consistency and peak performances over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WinsTop10Chart data={winsTop10Data} />
+        </CardContent>
+      </Card>
+
+      <Link href={`/players/${player.player_id}/stats`}>
+        <Card className="border-border/60 border-dashed transition-colors hover:border-primary/60 hover:bg-secondary/40">
+          <CardContent className="flex items-center justify-between py-5">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <BarChart3 className="size-5" />
+              </span>
+              <div>
+                <p className="font-medium">View full stat breakdown</p>
+                <p className="text-sm text-muted-foreground">
+                  Every season, every category — 97 stats in total
+                </p>
+              </div>
+            </div>
+            <span className="text-muted-foreground">→</span>
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   );
 }
