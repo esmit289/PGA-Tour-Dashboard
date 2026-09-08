@@ -15,13 +15,48 @@ import {
 } from "@/components/ui/table";
 import { PlayerCombobox } from "@/components/player-combobox";
 import { CompareChart } from "@/components/compare-chart";
+import { CompareRadarChart } from "@/components/compare-radar-chart";
 import { StatLabel } from "@/components/stat-label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getPlayer, getPlayerHistory, getPlayersForBrowse } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
-import { STAT_OPTIONS } from "@/lib/types";
+import { STAT_OPTIONS, type PlayerSeasonStat } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+const COLOR_A = "var(--chart-1)";
+const COLOR_B = "var(--chart-4)";
+
+// Radar axes: strokes-gained categories plus the two headline accuracy
+// stats, all "higher is better" so the shape reads intuitively at a
+// glance without any inverted axes.
+const RADAR_KEYS = [
+  "sg_off_the_tee",
+  "sg_approach",
+  "sg_around_green",
+  "sg_putting",
+  "driving_accuracy_pct",
+  "gir_pct",
+] as const satisfies readonly (keyof PlayerSeasonStat)[];
+
+function winnerOf(
+  a: number | null | undefined,
+  b: number | null | undefined,
+  lowerIsBetter: boolean
+): "a" | "b" | null {
+  if (a === null || a === undefined || b === null || b === undefined) return null;
+  if (a === b) return null;
+  if (lowerIsBetter) return a < b ? "a" : "b";
+  return a > b ? "a" : "b";
+}
+
+function statCellProps(w: "a" | "b" | null, side: "a" | "b") {
+  return {
+    className: cn("text-right", w === side && "font-semibold"),
+    style: w === side ? { color: side === "a" ? COLOR_A : COLOR_B } : undefined,
+  };
+}
 
 const COMPARE_STATS = STAT_OPTIONS.filter((s) =>
   [
@@ -75,6 +110,27 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
     b: historyB.find((h) => h.season === season)?.sg_total ?? null,
   }));
 
+  const scoringChartData = allSeasons.map((season) => ({
+    season,
+    a: historyA.find((h) => h.season === season)?.scoring_avg ?? null,
+    b: historyB.find((h) => h.season === season)?.scoring_avg ?? null,
+  }));
+
+  const radarStats = RADAR_KEYS.map((key) => {
+    const opt = STAT_OPTIONS.find((s) => s.key === key)!;
+    return {
+      key,
+      label: opt.label,
+      format: opt.format,
+      a: average(historyA.map((h) => h[key] as number | null)),
+      b: average(historyB.map((h) => h[key] as number | null)),
+      history: [
+        ...historyA.map((h) => h[key] as number | null),
+        ...historyB.map((h) => h[key] as number | null),
+      ],
+    };
+  });
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
       <div>
@@ -94,35 +150,68 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
       {playerA && playerB ? (
         <>
           <Card className="border-border/60 overflow-hidden">
-            <CardContent className="flex flex-col items-center gap-6 py-8 sm:flex-row sm:justify-center sm:gap-10">
-              <div className="flex flex-col items-center gap-3">
-                <Avatar className="size-28 sm:size-32">
-                  <AvatarImage src={headshotUrl(playerA.player_id)} alt={playerA.player_name} />
-                  <AvatarFallback className="text-2xl">
-                    {initials(playerA.player_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center">
-                  <p className="text-lg font-bold">{playerA.player_name}</p>
-                  {playerA.country && <Badge variant="outline">{playerA.country}</Badge>}
+            <CardContent className="flex flex-col items-center gap-8 py-8">
+              <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-6 lg:gap-10">
+                <div className="flex flex-col items-center gap-3">
+                  <Avatar className="size-28 sm:size-32">
+                    <AvatarImage src={headshotUrl(playerA.player_id)} alt={playerA.player_name} />
+                    <AvatarFallback className="text-2xl">
+                      {initials(playerA.player_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <p className="text-lg font-bold">{playerA.player_name}</p>
+                    {playerA.country && <Badge variant="outline">{playerA.country}</Badge>}
+                  </div>
+                  <PlayerCombobox paramKey="a" label="Swap player A" players={allPlayers} currentId={aId} />
                 </div>
-                <PlayerCombobox paramKey="a" label="Swap player A" players={allPlayers} currentId={aId} />
+
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-heading text-2xl font-black text-accent sm:text-3xl">
+                    VS
+                  </span>
+                  <CompareRadarChart
+                    stats={radarStats}
+                    nameA={playerA.player_name}
+                    nameB={playerB.player_name}
+                  />
+                </div>
+
+                <div className="flex flex-col items-center gap-3">
+                  <Avatar className="size-28 sm:size-32">
+                    <AvatarImage src={headshotUrl(playerB.player_id)} alt={playerB.player_name} />
+                    <AvatarFallback className="text-2xl">
+                      {initials(playerB.player_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <p className="text-lg font-bold">{playerB.player_name}</p>
+                    {playerB.country && <Badge variant="outline">{playerB.country}</Badge>}
+                  </div>
+                  <PlayerCombobox paramKey="b" label="Swap player B" players={allPlayers} currentId={bId} />
+                </div>
               </div>
 
-              <span className="font-heading text-3xl font-black text-accent sm:text-4xl">VS</span>
-
-              <div className="flex flex-col items-center gap-3">
-                <Avatar className="size-28 sm:size-32">
-                  <AvatarImage src={headshotUrl(playerB.player_id)} alt={playerB.player_name} />
-                  <AvatarFallback className="text-2xl">
-                    {initials(playerB.player_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center">
-                  <p className="text-lg font-bold">{playerB.player_name}</p>
-                  {playerB.country && <Badge variant="outline">{playerB.country}</Badge>}
-                </div>
-                <PlayerCombobox paramKey="b" label="Swap player B" players={allPlayers} currentId={bId} />
+              <div className="w-full max-w-2xl border-t border-border/60 pt-5">
+                <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Who had the edge
+                </p>
+                <ul className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+                  {radarStats.map((s) => {
+                    const w = winnerOf(s.a, s.b, false);
+                    return (
+                      <li key={s.key} className="flex items-center justify-between gap-3">
+                        <span className="text-muted-foreground">{s.label}</span>
+                        <span
+                          className="font-semibold"
+                          style={{ color: w === "a" ? COLOR_A : w === "b" ? COLOR_B : undefined }}
+                        >
+                          {w === "a" ? playerA.player_name : w === "b" ? playerB.player_name : "Tied"}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             </CardContent>
           </Card>
@@ -140,6 +229,23 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                 nameA={playerA.player_name}
                 nameB={playerB.player_name}
                 format="decimal2"
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60">
+            <CardHeader>
+              <CardTitle>
+                {playerA.player_name} vs {playerB.player_name}
+              </CardTitle>
+              <CardDescription>Scoring average, by season — lower is better</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompareChart
+                data={scoringChartData}
+                nameA={playerA.player_name}
+                nameB={playerB.player_name}
+                format="decimal3"
               />
             </CardContent>
           </Card>
@@ -165,10 +271,10 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     <TableCell>
                       <StatLabel label="Wins" description={STAT_DESCRIPTIONS.wins} />
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-accent">
+                    <TableCell {...statCellProps(winnerOf(careerA.wins, careerB.wins, false), "a")}>
                       {careerA.wins}
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-accent">
+                    <TableCell {...statCellProps(winnerOf(careerA.wins, careerB.wins, false), "b")}>
                       {careerB.wins}
                     </TableCell>
                   </TableRow>
@@ -176,17 +282,21 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     <TableCell>
                       <StatLabel label="Top 10s" description={STAT_DESCRIPTIONS.top_10} />
                     </TableCell>
-                    <TableCell className="text-right">{careerA.top10}</TableCell>
-                    <TableCell className="text-right">{careerB.top10}</TableCell>
+                    <TableCell {...statCellProps(winnerOf(careerA.top10, careerB.top10, false), "a")}>
+                      {careerA.top10}
+                    </TableCell>
+                    <TableCell {...statCellProps(winnerOf(careerA.top10, careerB.top10, false), "b")}>
+                      {careerB.top10}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <StatLabel label="Official Money" description={STAT_DESCRIPTIONS.official_money} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell {...statCellProps(winnerOf(careerA.money, careerB.money, false), "a")}>
                       {formatStat(careerA.money, "money")}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell {...statCellProps(winnerOf(careerA.money, careerB.money, false), "b")}>
                       {formatStat(careerB.money, "money")}
                     </TableCell>
                   </TableRow>
@@ -194,10 +304,10 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     <TableCell>
                       <StatLabel label="Best Scoring Avg" description={STAT_DESCRIPTIONS.scoring_avg} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell {...statCellProps(winnerOf(careerA.bestScoring, careerB.bestScoring, true), "a")}>
                       {formatStat(careerA.bestScoring, "decimal3")}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell {...statCellProps(winnerOf(careerA.bestScoring, careerB.bestScoring, true), "b")}>
                       {formatStat(careerB.bestScoring, "decimal3")}
                     </TableCell>
                   </TableRow>
@@ -205,10 +315,10 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     <TableCell>
                       <StatLabel label="Best SG: Total season" description={STAT_DESCRIPTIONS.sg_total} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell {...statCellProps(winnerOf(careerA.bestSg, careerB.bestSg, false), "a")}>
                       {formatStat(careerA.bestSg, "decimal2")}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell {...statCellProps(winnerOf(careerA.bestSg, careerB.bestSg, false), "b")}>
                       {formatStat(careerB.bestSg, "decimal2")}
                     </TableCell>
                   </TableRow>
@@ -234,15 +344,16 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                   {COMPARE_STATS.map((opt) => {
                     const avgA = average(historyA.map((h) => h[opt.key] as number | null));
                     const avgB = average(historyB.map((h) => h[opt.key] as number | null));
+                    const w = winnerOf(avgA, avgB, opt.lowerIsBetter);
                     return (
                       <TableRow key={opt.key}>
                         <TableCell>
                           <StatLabel label={opt.label} description={STAT_DESCRIPTIONS[opt.key]} />
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell {...statCellProps(w, "a")}>
                           {formatStat(avgA, opt.format)}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell {...statCellProps(w, "b")}>
                           {formatStat(avgB, opt.format)}
                         </TableCell>
                       </TableRow>
