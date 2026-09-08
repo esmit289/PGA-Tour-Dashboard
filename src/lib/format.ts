@@ -1,5 +1,8 @@
 export function headshotUrl(playerId: string): string {
-  return `https://pga-tour-res.cloudinary.com/image/upload/c_fill,d_headshots_default.png,f_auto,g_face:center,h_390,q_auto,w_390/headshots_${playerId}.png`;
+  // PGA Tour's Cloudinary bucket expects 5-digit zero-padded IDs; older
+  // players with shorter legacy IDs (Tiger Woods = "8793", etc.) 404 to a
+  // blank default headshot without this.
+  return `https://pga-tour-res.cloudinary.com/image/upload/c_fill,d_headshots_default.png,f_auto,g_face:center,h_390,q_auto,w_390/headshots_${playerId.padStart(5, "0")}.png`;
 }
 
 export function initials(name: string): string {

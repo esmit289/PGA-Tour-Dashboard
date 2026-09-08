@@ -136,8 +136,12 @@ def extract_seasons_on_tour(data):
 
 def fetch_player_totals(player_id):
     try:
-        career_data = fetch_next_data(f"https://www.pgatour.com/player/{player_id}/x/career")
-        results_data = fetch_next_data(f"https://www.pgatour.com/player/{player_id}/x/results")
+        # PGA Tour's site expects 5-digit zero-padded IDs; shorter legacy
+        # IDs (Tiger Woods = "8793", etc.) otherwise resolve to a blank
+        # profile with no career/bio data at all.
+        padded = player_id.zfill(5)
+        career_data = fetch_next_data(f"https://www.pgatour.com/player/{padded}/x/career")
+        results_data = fetch_next_data(f"https://www.pgatour.com/player/{padded}/x/results")
         money = extract_career_money(career_data) if career_data else None
         seasons = extract_seasons_on_tour(results_data) if results_data else None
         return player_id, seasons, money, None

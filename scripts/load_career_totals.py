@@ -9,11 +9,11 @@ Separate from player_season_stats because it holds whole-career totals
 rather than a per-season breakdown, and separate from player_wins
 because it's one row per player rather than one row per win.
 
-A handful of players (PGA Tour's own site returns blank bio/career data
-for some retired legends -- Tiger Woods, Phil Mickelson, Vijay Singh,
-Steve Stricker, David Toms, Jerry Kelly, confirmed by fetch_career_totals.py)
-have null seasons_on_tour / career_official_money here. The app falls
-back to computing from player_season_stats for those.
+fetch_career_totals.py zero-pads player IDs to 5 digits before hitting
+PGA Tour's site -- without that, legacy short IDs (Tiger Woods = "8793",
+etc.) resolve to a blank profile with no career data. The app still
+falls back to computing from player_season_stats for the rare case a
+row is missing here.
 
 Usage:
     export SUPABASE_DB_URL="postgresql://...supabase.com:5432/postgres"

@@ -94,7 +94,9 @@ def extract_pga_wins(career_data):
 
 
 def fetch_player_wins(player_id, retries=3):
-    url = f"https://www.pgatour.com/player/{player_id}/x/career"
+    # PGA Tour's site expects 5-digit zero-padded IDs; shorter legacy IDs
+    # (Tiger Woods = "8793", etc.) otherwise resolve to a blank profile.
+    url = f"https://www.pgatour.com/player/{player_id.zfill(5)}/x/career"
     req = urllib.request.Request(url, headers=HEADERS)
     for attempt in range(retries):
         try:
