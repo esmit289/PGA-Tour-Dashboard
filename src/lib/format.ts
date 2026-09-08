@@ -35,6 +35,17 @@ export function formatStat(value: number | null | undefined, format: string): st
   }
 }
 
+// Short form for chart axis ticks (e.g. "$31M") where full currency
+// formatting like "$30,937,525" would overflow the axis width.
+export function formatCompactMoney(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
 export function ordinal(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
   const rounded = Math.round(n);

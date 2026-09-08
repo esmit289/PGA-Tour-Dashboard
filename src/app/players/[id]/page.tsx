@@ -61,6 +61,73 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
       [h.sg_off_the_tee, h.sg_approach, h.sg_around_green, h.sg_putting].some((v) => v !== null)
     );
 
+  // A chart with only a couple of points reads as broken rather than
+  // informative, so any season-by-season chart needs at least this many
+  // real data points to show up at all.
+  const MIN_CHART_POINTS = 5;
+
+  const seasonCharts = [
+    scoringTrend.length >= MIN_CHART_POINTS && (
+      <Card key="scoring" className="border-border/60">
+        <CardHeader>
+          <CardTitle>Scoring average by season</CardTitle>
+          <CardDescription>Lower is better</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TrendChart data={scoringTrend} label="Scoring avg" format="decimal3" />
+        </CardContent>
+      </Card>
+    ),
+    sgTrend.length >= MIN_CHART_POINTS && (
+      <Card key="sg-total" className="border-border/60">
+        <CardHeader>
+          <CardTitle>Strokes Gained: Total by season</CardTitle>
+          <CardDescription>
+            Best season: {Number.isFinite(bestSg) ? bestSg.toFixed(2) : "—"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TrendChart data={sgTrend} label="SG: Total" format="decimal2" />
+        </CardContent>
+      </Card>
+    ),
+    drivingTrend.length >= MIN_CHART_POINTS && (
+      <Card key="driving" className="border-border/60">
+        <CardHeader>
+          <CardTitle>Driving distance by season</CardTitle>
+          <CardDescription>Average yards per drive</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TrendChart data={drivingTrend} label="Driving distance" format="decimal1" />
+        </CardContent>
+      </Card>
+    ),
+    girTrend.length >= MIN_CHART_POINTS && (
+      <Card key="gir" className="border-border/60">
+        <CardHeader>
+          <CardTitle>Greens in Regulation by season</CardTitle>
+          <CardDescription>Higher is better</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TrendChart data={girTrend} label="GIR %" format="pct" />
+        </CardContent>
+      </Card>
+    ),
+    moneyTrend.length >= MIN_CHART_POINTS && (
+      <Card key="money" className="border-border/60">
+        <CardHeader>
+          <CardTitle>Official money by season</CardTitle>
+          <CardDescription>Prize money from official Tour events</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SeasonBarChart data={moneyTrend} label="Money" format="money" color="var(--chart-3)" />
+        </CardContent>
+      </Card>
+    ),
+  ].filter(Boolean);
+
+  const showWinsTop10 = winsTop10Data.length >= MIN_CHART_POINTS;
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -114,82 +181,33 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
         </Card>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>Scoring average by season</CardTitle>
-            <CardDescription>Lower is better</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TrendChart data={scoringTrend} label="Scoring avg" format="decimal3" />
-          </CardContent>
-        </Card>
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>Strokes Gained: Total by season</CardTitle>
-            <CardDescription>
-              Best season: {Number.isFinite(bestSg) ? bestSg.toFixed(2) : "—"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TrendChart data={sgTrend} label="SG: Total" format="decimal2" />
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>Driving distance by season</CardTitle>
-            <CardDescription>Average yards per drive</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TrendChart data={drivingTrend} label="Driving distance" format="decimal1" />
-          </CardContent>
-        </Card>
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>Greens in Regulation by season</CardTitle>
-            <CardDescription>Higher is better</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TrendChart data={girTrend} label="GIR %" format="pct" />
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>
-              Strokes gained breakdown{sgBreakdownSeason ? ` — ${sgBreakdownSeason.season}` : ""}
-            </CardTitle>
-            <CardDescription>Where their game gains or loses strokes on the field</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SgBreakdownChart values={sgBreakdownSeason ?? {}} />
-          </CardContent>
-        </Card>
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>Official money by season</CardTitle>
-            <CardDescription>Prize money from official Tour events</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SeasonBarChart data={moneyTrend} label="Money" format="money" color="var(--chart-3)" />
-          </CardContent>
-        </Card>
-      </section>
-
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle>Wins &amp; Top 10 finishes by season</CardTitle>
-          <CardDescription>Consistency and peak performances over time</CardDescription>
+          <CardTitle>
+            Strokes gained breakdown{sgBreakdownSeason ? ` — ${sgBreakdownSeason.season}` : ""}
+          </CardTitle>
+          <CardDescription>Where their game gains or loses strokes on the field</CardDescription>
         </CardHeader>
         <CardContent>
-          <WinsTop10Chart data={winsTop10Data} />
+          <SgBreakdownChart values={sgBreakdownSeason ?? {}} />
         </CardContent>
       </Card>
+
+      {seasonCharts.length > 0 && (
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">{seasonCharts}</section>
+      )}
+
+      {showWinsTop10 && (
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle>Wins &amp; Top 10 finishes by season</CardTitle>
+            <CardDescription>Consistency and peak performances over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WinsTop10Chart data={winsTop10Data} />
+          </CardContent>
+        </Card>
+      )}
 
       <Link href={`/players/${player.player_id}/stats`}>
         <Card className="border-border/60 border-dashed transition-colors hover:border-primary/60 hover:bg-secondary/40">
