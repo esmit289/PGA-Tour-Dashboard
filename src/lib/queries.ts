@@ -127,6 +127,23 @@ export async function getExtendedStatsForPlayer(playerId: string) {
   return all;
 }
 
+export interface PlayerWin {
+  player_id: string;
+  season: number;
+  tournament: string;
+}
+
+export async function getPlayerWins(playerId: string) {
+  const { data, error } = await supabase
+    .from("player_wins")
+    .select("*")
+    .eq("player_id", playerId)
+    .order("season", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as PlayerWin[];
+}
+
 export async function getSeasonSummary(season: number) {
   const { count, error } = await supabase
     .from("player_season_stats")

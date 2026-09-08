@@ -15,8 +15,9 @@ import { TrendChart } from "@/components/trend-chart";
 import { SgBreakdownChart } from "@/components/sg-breakdown-chart";
 import { SeasonBarChart } from "@/components/season-bar-chart";
 import { WinsTop10Chart } from "@/components/wins-top10-chart";
+import { WinsDropdown } from "@/components/wins-dropdown";
 import { StatLabel } from "@/components/stat-label";
-import { getPlayer, getPlayerHistory } from "@/lib/queries";
+import { getPlayer, getPlayerHistory, getPlayerWins } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 
@@ -32,6 +33,8 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
 
   const history = await getPlayerHistory(id);
   if (!player || history.length === 0) notFound();
+
+  const wins = await getPlayerWins(id);
 
   const totalWins = history.reduce((sum, h) => sum + (h.wins ?? 0), 0);
   const totalMoney = history.reduce((sum, h) => sum + (h.official_money ?? 0), 0);
@@ -136,6 +139,8 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
           </Link>
         </div>
       </div>
+
+      <WinsDropdown wins={wins} />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-border/60">
