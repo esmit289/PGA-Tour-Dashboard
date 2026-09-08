@@ -17,7 +17,7 @@ import { SeasonBarChart } from "@/components/season-bar-chart";
 import { WinsTop10Chart } from "@/components/wins-top10-chart";
 import { WinsDropdown } from "@/components/wins-dropdown";
 import { StatLabel } from "@/components/stat-label";
-import { getPlayer, getPlayerHistory, getPlayerWins } from "@/lib/queries";
+import { getPlayer, getPlayerHistory, getPlayerWins, getPlayerCareerTotals } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 
@@ -35,9 +35,18 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
   if (!player || history.length === 0) notFound();
 
   const wins = await getPlayerWins(id);
+  const careerTotals = await getPlayerCareerTotals(id).catch(() => null);
 
+  // player_season_stats only covers 2016-2026, so career-wide figures
+  // (seasons actually played, all-time money) come from player_career_totals
+  // -- scraped from PGA Tour's own site -- with the 2016+-only numbers as a
+  // fallback for the handful of players PGA Tour's site won't return
+  // career data for (see fetch_career_totals.py).
   const totalWins = wins.length;
-  const totalMoney = history.reduce((sum, h) => sum + (h.official_money ?? 0), 0);
+  const seasonsOnTour = careerTotals?.seasons_on_tour ?? history.length;
+  const totalMoney =
+    careerTotals?.career_official_money ??
+    history.reduce((sum, h) => sum + (h.official_money ?? 0), 0);
   const bestSg = Math.max(...history.map((h) => h.sg_total ?? -Infinity));
 
   const scoringTrend = history
@@ -146,7 +155,7 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
         <Card className="border-border/60">
           <CardHeader className="pb-2">
             <CardDescription>Seasons on Tour</CardDescription>
-            <CardTitle className="font-heading text-3xl">{history.length}</CardTitle>
+            <CardTitle className="font-heading text-3xl">{seasonsOnTour}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="border-border/60">

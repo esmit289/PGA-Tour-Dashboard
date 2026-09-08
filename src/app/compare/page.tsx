@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -131,6 +132,10 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
     };
   });
 
+  const radarWinners = radarStats.map((s) => winnerOf(s.a, s.b, false));
+  const aRadarWins = radarWinners.filter((w) => w === "a").length;
+  const bRadarWins = radarWinners.filter((w) => w === "b").length;
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
       <div>
@@ -160,7 +165,12 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-center">
-                    <p className="text-lg font-bold">{playerA.player_name}</p>
+                    <Link
+                      href={`/players/${playerA.player_id}`}
+                      className="block text-lg font-bold hover:underline"
+                    >
+                      {playerA.player_name}
+                    </Link>
                     {playerA.country && <Badge variant="outline">{playerA.country}</Badge>}
                   </div>
                   <PlayerCombobox paramKey="a" label="Swap player A" players={allPlayers} currentId={aId} />
@@ -185,7 +195,12 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-center">
-                    <p className="text-lg font-bold">{playerB.player_name}</p>
+                    <Link
+                      href={`/players/${playerB.player_id}`}
+                      className="block text-lg font-bold hover:underline"
+                    >
+                      {playerB.player_name}
+                    </Link>
                     {playerB.country && <Badge variant="outline">{playerB.country}</Badge>}
                   </div>
                   <PlayerCombobox paramKey="b" label="Swap player B" players={allPlayers} currentId={bId} />
@@ -193,12 +208,29 @@ export default async function ComparePage({ searchParams }: PageProps<"/compare"
               </div>
 
               <div className="w-full max-w-2xl border-t border-border/60 pt-5">
+                <p className="mb-4 text-center text-base">
+                  {aRadarWins === bRadarWins ? (
+                    <>
+                      Tied on the radar, {aRadarWins} out of {radarStats.length}
+                    </>
+                  ) : (
+                    <>
+                      <span
+                        className="font-bold"
+                        style={{ color: aRadarWins > bRadarWins ? COLOR_A : COLOR_B }}
+                      >
+                        {aRadarWins > bRadarWins ? playerA.player_name : playerB.player_name}
+                      </span>{" "}
+                      takes it, {Math.max(aRadarWins, bRadarWins)} out of {radarStats.length}
+                    </>
+                  )}
+                </p>
                 <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Who had the edge
                 </p>
                 <ul className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-                  {radarStats.map((s) => {
-                    const w = winnerOf(s.a, s.b, false);
+                  {radarStats.map((s, i) => {
+                    const w = radarWinners[i];
                     return (
                       <li key={s.key} className="flex items-center justify-between gap-3">
                         <span className="text-muted-foreground">{s.label}</span>

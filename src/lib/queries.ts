@@ -144,6 +144,23 @@ export async function getPlayerWins(playerId: string) {
   return (data ?? []) as PlayerWin[];
 }
 
+export interface PlayerCareerTotals {
+  player_id: string;
+  seasons_on_tour: number | null;
+  career_official_money: number | null;
+}
+
+export async function getPlayerCareerTotals(playerId: string) {
+  const { data, error } = await supabase
+    .from("player_career_totals")
+    .select("*")
+    .eq("player_id", playerId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as PlayerCareerTotals | null;
+}
+
 export async function getSeasonSummary(season: number) {
   const { count, error } = await supabase
     .from("player_season_stats")
