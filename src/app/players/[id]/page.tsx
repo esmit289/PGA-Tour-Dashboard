@@ -21,22 +21,9 @@ import { TrendChart } from "@/components/trend-chart";
 import { StatLabel } from "@/components/stat-label";
 import { getPlayer, getPlayerHistory, getExtendedStatsForPlayer } from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
-import { STAT_DESCRIPTIONS } from "@/lib/glossary";
+import { STAT_DESCRIPTIONS, EXTENDED_STAT_DESCRIPTIONS, EXTENDED_CATEGORY_ORDER } from "@/lib/glossary";
 import { PROFILE_STAT_GROUPS, type ExtendedStatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const EXTENDED_CATEGORY_ORDER = [
-  "Scoring",
-  "Off the Tee",
-  "Approach",
-  "Around the Green",
-  "Putting",
-  "Ratings",
-  "Team & Majors",
-  "Streaks",
-  "Recent Form",
-  "Swing Metrics",
-];
 
 // Sub-metric field names aren't consistent across PGA Tour's 72 stat
 // categories (e.g. "Avg", "Average Bogeys per round", or repeating the
@@ -372,7 +359,9 @@ export default async function PlayerPage({
                             key={key}
                             className="flex items-baseline justify-between gap-2 text-sm"
                           >
-                            <dt className="text-muted-foreground">{title}</dt>
+                            <dt className="text-muted-foreground">
+                              <StatLabel label={title} description={EXTENDED_STAT_DESCRIPTIONS[key]} />
+                            </dt>
                             <dd className="font-medium">
                               {row.stat_value}
                               {row.rank !== null && (
