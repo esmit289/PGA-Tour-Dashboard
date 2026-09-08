@@ -17,9 +17,21 @@ import { SeasonBarChart } from "@/components/season-bar-chart";
 import { WinsTop10Chart } from "@/components/wins-top10-chart";
 import { WinsDropdown } from "@/components/wins-dropdown";
 import { StatLabel } from "@/components/stat-label";
-import { getPlayer, getPlayerHistory, getPlayerWins, getPlayerCareerTotals } from "@/lib/queries";
+import {
+  getPlayer,
+  getPlayerHistory,
+  getPlayerWins,
+  getPlayerCareerTotals,
+  getPlayerTournamentResults,
+} from "@/lib/queries";
 import { formatStat, headshotUrl, initials } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
+import { PlayerDashboardExperiment } from "@/components/dashboard-experiment-profile";
+
+// One-player design experiment (see fetch_tournament_results.py): only
+// these players get the alternate Tableau-style layout. Expand this list
+// (and re-run the fetch/load scripts) to roll it out further.
+const DASHBOARD_EXPERIMENT_PLAYER_IDS = ["28237"]; // Rory McIlroy
 
 export default async function PlayerPage({ params }: PageProps<"/players/[id]">) {
   const { id } = await params;
@@ -33,6 +45,15 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
 
   const history = await getPlayerHistory(id);
   if (!player || history.length === 0) notFound();
+
+  if (DASHBOARD_EXPERIMENT_PLAYER_IDS.includes(id)) {
+    const tournamentResults = await getPlayerTournamentResults(id).catch(() => []);
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <PlayerDashboardExperiment player={player} results={tournamentResults} />
+      </div>
+    );
+  }
 
   const wins = await getPlayerWins(id);
   const careerTotals = await getPlayerCareerTotals(id).catch(() => null);

@@ -144,6 +144,34 @@ export async function getPlayerWins(playerId: string) {
   return (data ?? []) as PlayerWin[];
 }
 
+export interface PlayerTournamentResult {
+  player_id: string;
+  tournament_id: string;
+  tournament_name: string;
+  course_name: string | null;
+  season: number;
+  event_date: string | null;
+  position: string | null;
+  position_numeric: number | null;
+  to_par: number | null;
+  winnings: number | null;
+  sg_off_the_tee: number | null;
+  sg_approach: number | null;
+  sg_around_green: number | null;
+  sg_putting: number | null;
+}
+
+export async function getPlayerTournamentResults(playerId: string) {
+  const { data, error } = await supabase
+    .from("player_tournament_results")
+    .select("*")
+    .eq("player_id", playerId)
+    .order("event_date", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as PlayerTournamentResult[];
+}
+
 export interface PlayerCareerTotals {
   player_id: string;
   seasons_on_tour: number | null;
