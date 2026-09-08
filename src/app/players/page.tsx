@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { PlayerSearchBox } from "@/components/player-search-box";
 import { searchPlayers, getPlayersForBrowse } from "@/lib/queries";
 import { headshotUrl, initials } from "@/lib/format";
 
@@ -9,7 +9,8 @@ export default async function PlayersPage({ searchParams }: PageProps<"/players"
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
 
-  const players = q ? await searchPlayers(q, 100) : await getPlayersForBrowse();
+  const allPlayers = await getPlayersForBrowse();
+  const players = q ? await searchPlayers(q, 100) : allPlayers;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
@@ -20,9 +21,7 @@ export default async function PlayersPage({ searchParams }: PageProps<"/players"
         </p>
       </div>
 
-      <form action="/players" className="max-w-sm">
-        <Input name="q" placeholder="Search by name..." defaultValue={q} />
-      </form>
+      <PlayerSearchBox players={allPlayers} defaultValue={q} />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {players.map((p) => (
