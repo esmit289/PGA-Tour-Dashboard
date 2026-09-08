@@ -46,6 +46,29 @@ export function formatCompactMoney(value: number): string {
   }).format(value);
 }
 
+// "Competition ranking" (same convention golf leaderboards use): players
+// tied on the sorted value share the same rank, and the rank after a tied
+// group skips ahead by the group size (e.g. two players tied for 1st means
+// the next player is 3rd, not 2nd). `values` must already be sorted in
+// leaderboard order.
+export function computeCompetitionRanks(
+  values: (number | null)[]
+): { rank: number; tied: boolean }[] {
+  const result: { rank: number; tied: boolean }[] = new Array(values.length);
+  let i = 0;
+  while (i < values.length) {
+    let j = i;
+    while (j + 1 < values.length && values[j + 1] === values[i]) j++;
+    const rank = i + 1;
+    const tied = j > i;
+    for (let k = i; k <= j; k++) {
+      result[k] = { rank, tied };
+    }
+    i = j + 1;
+  }
+  return result;
+}
+
 export function ordinal(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
   const rounded = Math.round(n);

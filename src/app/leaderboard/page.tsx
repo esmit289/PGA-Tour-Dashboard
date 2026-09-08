@@ -16,7 +16,7 @@ import {
 import { LeaderboardFilters } from "@/components/leaderboard-filters";
 import { StatLabel } from "@/components/stat-label";
 import { getLeaderboard } from "@/lib/queries";
-import { formatStat } from "@/lib/format";
+import { formatStat, computeCompetitionRanks } from "@/lib/format";
 import { STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { SEASONS, STAT_OPTIONS, type StatKey } from "@/lib/types";
 
@@ -35,6 +35,7 @@ export default async function LeaderboardPage({
     search: search || undefined,
     ascending: statOption.lowerIsBetter,
   });
+  const ranks = computeCompetitionRanks(rows.map((r) => r[statOption.key] as number | null));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
@@ -75,7 +76,9 @@ export default async function LeaderboardPage({
               <TableBody>
                 {rows.map((row, i) => (
                   <TableRow key={row.player_id}>
-                    <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {ranks[i].tied ? `T-${ranks[i].rank}` : ranks[i].rank}
+                    </TableCell>
                     <TableCell>
                       <Link
                         href={`/players/${row.player_id}`}
