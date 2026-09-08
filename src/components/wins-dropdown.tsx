@@ -31,7 +31,7 @@ export function WinsDropdown({ wins }: { wins: PlayerWin[] }) {
         >
           <span className="flex items-center gap-2 font-medium">
             <Trophy className="size-4 text-accent" />
-            Career Wins ({wins.length})
+            Career Wins
           </span>
           <ChevronDown
             className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")}

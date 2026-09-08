@@ -36,7 +36,7 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
 
   const wins = await getPlayerWins(id);
 
-  const totalWins = history.reduce((sum, h) => sum + (h.wins ?? 0), 0);
+  const totalWins = wins.length;
   const totalMoney = history.reduce((sum, h) => sum + (h.official_money ?? 0), 0);
   const bestSg = Math.max(...history.map((h) => h.sg_total ?? -Infinity));
 
