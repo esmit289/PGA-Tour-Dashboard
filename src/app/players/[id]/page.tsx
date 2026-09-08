@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import { BarChart3 } from "lucide-react";
 import {
   Card,
@@ -66,66 +67,48 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
   // real data points to show up at all.
   const MIN_CHART_POINTS = 5;
 
-  const seasonCharts = [
-    scoringTrend.length >= MIN_CHART_POINTS && (
-      <Card key="scoring" className="border-border/60">
-        <CardHeader>
-          <CardTitle>Scoring average by season</CardTitle>
-          <CardDescription>Lower is better</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TrendChart data={scoringTrend} label="Scoring avg" format="decimal3" />
-        </CardContent>
-      </Card>
-    ),
-    sgTrend.length >= MIN_CHART_POINTS && (
-      <Card key="sg-total" className="border-border/60">
-        <CardHeader>
-          <CardTitle>Strokes Gained: Total by season</CardTitle>
-          <CardDescription>
-            Best season: {Number.isFinite(bestSg) ? bestSg.toFixed(2) : "—"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TrendChart data={sgTrend} label="SG: Total" format="decimal2" />
-        </CardContent>
-      </Card>
-    ),
-    drivingTrend.length >= MIN_CHART_POINTS && (
-      <Card key="driving" className="border-border/60">
-        <CardHeader>
-          <CardTitle>Driving distance by season</CardTitle>
-          <CardDescription>Average yards per drive</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TrendChart data={drivingTrend} label="Driving distance" format="decimal1" />
-        </CardContent>
-      </Card>
-    ),
-    girTrend.length >= MIN_CHART_POINTS && (
-      <Card key="gir" className="border-border/60">
-        <CardHeader>
-          <CardTitle>Greens in Regulation by season</CardTitle>
-          <CardDescription>Higher is better</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TrendChart data={girTrend} label="GIR %" format="pct" />
-        </CardContent>
-      </Card>
-    ),
-    moneyTrend.length >= MIN_CHART_POINTS && (
-      <Card key="money" className="border-border/60">
-        <CardHeader>
-          <CardTitle>Official money by season</CardTitle>
-          <CardDescription>Prize money from official Tour events</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SeasonBarChart data={moneyTrend} label="Money" format="money" color="var(--chart-3)" />
-        </CardContent>
-      </Card>
-    ),
-  ].filter(Boolean);
+  type ChartEntry = { key: string; title: ReactNode; description: ReactNode; content: ReactNode };
 
+  const chartEntries: (ChartEntry | false)[] = [
+    {
+      key: "sg-breakdown",
+      title: <>Strokes gained breakdown{sgBreakdownSeason ? ` — ${sgBreakdownSeason.season}` : ""}</>,
+      description: "Where their game gains or loses strokes on the field",
+      content: <SgBreakdownChart values={sgBreakdownSeason ?? {}} />,
+    },
+    scoringTrend.length >= MIN_CHART_POINTS && {
+      key: "scoring",
+      title: "Scoring average by season",
+      description: "Lower is better",
+      content: <TrendChart data={scoringTrend} label="Scoring avg" format="decimal3" />,
+    },
+    sgTrend.length >= MIN_CHART_POINTS && {
+      key: "sg-total",
+      title: "Strokes Gained: Total by season",
+      description: `Best season: ${Number.isFinite(bestSg) ? bestSg.toFixed(2) : "—"}`,
+      content: <TrendChart data={sgTrend} label="SG: Total" format="decimal2" />,
+    },
+    drivingTrend.length >= MIN_CHART_POINTS && {
+      key: "driving",
+      title: "Driving distance by season",
+      description: "Average yards per drive",
+      content: <TrendChart data={drivingTrend} label="Driving distance" format="decimal1" />,
+    },
+    girTrend.length >= MIN_CHART_POINTS && {
+      key: "gir",
+      title: "Greens in Regulation by season",
+      description: "Higher is better",
+      content: <TrendChart data={girTrend} label="GIR %" format="pct" />,
+    },
+    moneyTrend.length >= MIN_CHART_POINTS && {
+      key: "money",
+      title: "Official money by season",
+      description: "Prize money from official Tour events",
+      content: <SeasonBarChart data={moneyTrend} label="Money" format="money" color="var(--chart-3)" />,
+    },
+  ];
+
+  const charts = chartEntries.filter((c): c is ChartEntry => c !== false);
   const showWinsTop10 = winsTop10Data.length >= MIN_CHART_POINTS;
 
   return (
@@ -181,21 +164,25 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
         </Card>
       </section>
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle>
-            Strokes gained breakdown{sgBreakdownSeason ? ` — ${sgBreakdownSeason.season}` : ""}
-          </CardTitle>
-          <CardDescription>Where their game gains or loses strokes on the field</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SgBreakdownChart values={sgBreakdownSeason ?? {}} />
-        </CardContent>
-      </Card>
-
-      {seasonCharts.length > 0 && (
-        <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">{seasonCharts}</section>
-      )}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {charts.map((chart, i) => {
+          const isLastOdd = i === charts.length - 1 && charts.length % 2 === 1;
+          return (
+            <Card
+              key={chart.key}
+              className={`border-border/60${isLastOdd ? " lg:col-span-2" : ""}`}
+            >
+              <CardHeader className={isLastOdd ? "items-center text-center" : undefined}>
+                <CardTitle>{chart.title}</CardTitle>
+                <CardDescription>{chart.description}</CardDescription>
+              </CardHeader>
+              <CardContent className={isLastOdd ? "mx-auto w-full max-w-2xl" : undefined}>
+                {chart.content}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </section>
 
       {showWinsTop10 && (
         <Card className="border-border/60">
