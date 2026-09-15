@@ -58,7 +58,7 @@ const FEATURE_LABELS: Record<string, string> = {
   sg_putting: "SG: Putting",
   birdie_avg: "Birdie Average",
   birdie_or_better_pct: "Birdie or Better %",
-  bogey_avoidance_pct: "Bogey Avoidance %",
+  bogey_avoidance_pct: "Bogey % (lower is better)",
 };
 
 export default function WinPredictorPage() {
@@ -208,6 +208,12 @@ export default function WinPredictorPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+              <p className="pb-2 text-xs text-muted-foreground">
+                Several stats are correlated (SG: Total is the sum of the four SG category stats
+                below it), so individual coefficient signs can look surprising even though the
+                model&apos;s overall predictions are sound — read this as &quot;what the model
+                weighted,&quot; not strict cause-and-effect.
+              </p>
               {sortedCoefficients.map(([col, coef]) => (
                 <div key={col} className="flex items-center gap-2 text-sm">
                   <span className="w-40 shrink-0 truncate">{FEATURE_LABELS[col] ?? col}</span>
