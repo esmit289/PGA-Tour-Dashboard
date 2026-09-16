@@ -227,7 +227,7 @@ export function WinPredictorClient({ allPlayers }: { allPlayers: Player[] }) {
       <div>
         <h1 className="text-2xl font-heading font-bold sm:text-3xl">Win Predictor</h1>
         <p className="text-muted-foreground">
-          A logistic regression pipeline trained on 2016-2026 PGA Tour season stats predicts
+          A gradient-boosted tree pipeline trained on 2016-2026 PGA Tour season stats predicts
           whether a stat line looks like a winning season. Live model served from Modal.
           Push the numbers as high or low as you want — see what it takes to look like a winner.
         </p>
@@ -418,16 +418,19 @@ export function WinPredictorClient({ allPlayers }: { allPlayers: Player[] }) {
             <CardHeader>
               <CardTitle>What leads to tournament wins</CardTitle>
               <CardDescription>
-                Logistic regression coefficients: which season-relative stat percentiles push
-                win-probability up (accent) or down (muted), and by how much.
+                How much the model leans on each stat: bars show permutation importance
+                (accent = helps win-probability, muted = hurts it), each stat locked to its
+                real golf direction so higher is never shown as bad for a stat where more is
+                actually better.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="pb-2 text-xs text-muted-foreground">
-                Several stats are correlated (SG: Total is the sum of the four SG category stats
-                below it), so individual coefficient signs can look surprising even though the
-                model&apos;s overall predictions are sound — read this as &quot;what the model
-                weighted,&quot; not strict cause-and-effect.
+                Bar length is how much shuffling that stat hurts the model&apos;s accuracy, not a
+                per-unit effect size — read it as &quot;what the model leans on,&quot; not strict
+                cause-and-effect. A few stats (like SG: Total, which is literally the sum of the
+                four SG categories below it) show up near zero because their information is
+                already fully captured by other stats in the list.
               </p>
               {sortedCoefficients.map(([col, coef]) => (
                 <div key={col} className="flex items-center gap-2 text-sm">
