@@ -65,8 +65,13 @@ const FEATURE_LABELS: Record<string, string> = {
 export default function WinPredictorPage() {
   const [info, setInfo] = useState<InfoResponse | null>(null);
   const [infoError, setInfoError] = useState<string | null>(null);
-  const [values, setValues] = useState<Record<string, number>>({});
-  const [season, setSeason] = useState(2024);
+  // Held as raw text (not numbers) while editing -- coercing every
+  // keystroke to a Number meant clearing a field to "" immediately became
+  // the numeric 0, which then displayed as a literal "0" the next digit
+  // got typed in front of (e.g. clearing "70.87" and typing "100" produced
+  // "0100"). Converted to numbers only when actually submitting.
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [season, setSeason] = useState("2024");
   const [result, setResult] = useState<PredictResponse | null>(null);
   const [predicting, setPredicting] = useState(false);
   const [predictError, setPredictError] = useState<string | null>(null);
@@ -79,7 +84,11 @@ export default function WinPredictorPage() {
       })
       .then((data: InfoResponse) => {
         setInfo(data);
-        setValues({ ...data.feature_defaults });
+        setValues(
+          Object.fromEntries(
+            Object.entries(data.feature_defaults).map(([col, v]) => [col, String(v)])
+          )
+        );
       })
       .catch((err) => setInfoError(String(err)));
   }, []);
@@ -89,10 +98,14 @@ export default function WinPredictorPage() {
     setPredictError(null);
     setResult(null);
     try {
+      const numericValues = Object.fromEntries(
+        Object.entries(values).map(([col, v]) => [col, v.trim() === "" ? 0 : Number(v)])
+      );
+      const numericSeason = season.trim() === "" ? 0 : Number(season);
       const res = await fetch(`${API_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, season }),
+        body: JSON.stringify({ ...numericValues, season: numericSeason }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -157,7 +170,7 @@ export default function WinPredictorPage() {
                   value={season}
                   min={2000}
                   max={2100}
-                  onChange={(e) => setSeason(Number(e.target.value))}
+                  onChange={(e) => setSeason(e.target.value)}
                 />
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -174,7 +187,7 @@ export default function WinPredictorPage() {
                       min={info.feature_bounds[col].min}
                       max={info.feature_bounds[col].max}
                       onChange={(e) =>
-                        setValues((prev) => ({ ...prev, [col]: Number(e.target.value) }))
+                        setValues((prev) => ({ ...prev, [col]: e.target.value }))
                       }
                     />
                   </div>
