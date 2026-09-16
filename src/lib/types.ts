@@ -62,6 +62,15 @@ export interface PlayerSeasonStat {
   world_rank_avg_points: number | null;
   all_around_rank: number | null;
   all_around_total: number | null;
+  // Amateur-trackable stats merged in from player_extended_stats by
+  // getPlayerHistory() -- not native columns on player_season_stats, and
+  // only populated for players/seasons that have that extended-stats data.
+  par3_scoring_avg?: number | null;
+  par4_scoring_avg?: number | null;
+  par5_scoring_avg?: number | null;
+  three_putt_avoidance?: number | null;
+  bounce_back?: number | null;
+  birdie_to_bogey_ratio?: number | null;
 }
 
 export type PlayerSeasonRow = PlayerSeasonStat & {

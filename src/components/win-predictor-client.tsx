@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StatLabel } from "@/components/stat-label";
-import { STAT_DESCRIPTIONS } from "@/lib/glossary";
+import { STAT_DESCRIPTIONS, EXTENDED_STAT_DESCRIPTIONS } from "@/lib/glossary";
 import { headshotUrl, initials } from "@/lib/format";
 import type { Player, PlayerSeasonStat } from "@/lib/types";
 import { ChevronsUpDown } from "lucide-react";
@@ -72,12 +72,12 @@ const FEATURE_LABELS: Record<string, string> = {
   putts_per_round: "Putts Per Round",
   scrambling_pct: "Scrambling %",
   sand_save_pct: "Sand Save %",
-  sg_total: "SG: Total",
-  sg_off_the_tee: "SG: Off-the-Tee",
-  sg_approach: "SG: Approach",
-  sg_around_green: "SG: Around-the-Green",
-  sg_putting: "SG: Putting",
-  birdie_avg: "Birdie Average",
+  par3_scoring_avg: "Par 3 Scoring Average",
+  par4_scoring_avg: "Par 4 Scoring Average",
+  par5_scoring_avg: "Par 5 Scoring Average",
+  three_putt_avoidance: "3-Putt % (lower is better)",
+  bounce_back: "Bounce-Back %",
+  birdie_to_bogey_ratio: "Birdie-to-Bogey Ratio",
   birdie_or_better_pct: "Birdie or Better %",
   bogey_avoidance_pct: "Bogey % (lower is better)",
 };
@@ -381,7 +381,10 @@ export function WinPredictorClient({ allPlayers }: { allPlayers: Player[] }) {
                   <div key={col}>
                     <StatLabel
                       label={FEATURE_LABELS[col] ?? col}
-                      description={STAT_DESCRIPTIONS[col as keyof typeof STAT_DESCRIPTIONS]}
+                      description={
+                        STAT_DESCRIPTIONS[col as keyof typeof STAT_DESCRIPTIONS] ??
+                        EXTENDED_STAT_DESCRIPTIONS[col]
+                      }
                     />
                     <Input
                       type="number"
@@ -428,9 +431,9 @@ export function WinPredictorClient({ allPlayers }: { allPlayers: Player[] }) {
               <p className="pb-2 text-xs text-muted-foreground">
                 Bar length is how much shuffling that stat hurts the model&apos;s accuracy, not a
                 per-unit effect size — read it as &quot;what the model leans on,&quot; not strict
-                cause-and-effect. A few stats (like SG: Total, which is literally the sum of the
-                four SG categories below it) show up near zero because their information is
-                already fully captured by other stats in the list.
+                cause-and-effect. A few stats show up near zero because their information overlaps
+                with other stats already in the list (e.g. Birdie-to-Bogey Ratio partly retreads
+                ground already covered by Birdie or Better % and Bogey %).
               </p>
               {sortedCoefficients.map(([col, coef]) => (
                 <div key={col} className="flex items-center gap-2 text-sm">

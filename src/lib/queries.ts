@@ -81,15 +81,47 @@ export async function getPlayer(playerId: string) {
   return data as Player;
 }
 
+// Which stat_name sub-metric to use for each amateur-trackable stat the
+// Win Predictor needs -- player_extended_stats bundles several sub-metrics
+// (e.g. "Avg", "Total Strokes", "Total Holes") under the same stat_key, so
+// this has to match build_pipeline.py's EXTENDED_STAT_CONFIG exactly.
+const AMATEUR_STAT_CONFIG: Record<string, string> = {
+  par3_scoring_avg: "Avg",
+  par4_scoring_avg: "Avg",
+  par5_scoring_avg: "Avg",
+  three_putt_avoidance: "%",
+  bounce_back: "%",
+  birdie_to_bogey_ratio: "Birdie to Bogey Ratio",
+};
+
 export async function getPlayerHistory(playerId: string) {
-  const { data, error } = await supabase
-    .from("player_season_stats")
-    .select("*")
-    .eq("player_id", playerId)
-    .order("season", { ascending: true });
+  const [{ data, error }, extended] = await Promise.all([
+    supabase
+      .from("player_season_stats")
+      .select("*")
+      .eq("player_id", playerId)
+      .order("season", { ascending: true }),
+    getExtendedStatsForPlayer(playerId),
+  ]);
 
   if (error) throw error;
-  return (data ?? []) as PlayerSeasonStat[];
+
+  const amateurStatBySeason = new Map<string, number>();
+  for (const row of extended) {
+    if (AMATEUR_STAT_CONFIG[row.stat_key] === row.stat_name && row.numeric_value !== null) {
+      amateurStatBySeason.set(`${row.season}:${row.stat_key}`, row.numeric_value);
+    }
+  }
+
+  return (data ?? []).map((row) => ({
+    ...row,
+    ...Object.fromEntries(
+      Object.keys(AMATEUR_STAT_CONFIG).map((statKey) => [
+        statKey,
+        amateurStatBySeason.get(`${row.season}:${statKey}`) ?? null,
+      ])
+    ),
+  })) as PlayerSeasonStat[];
 }
 
 export async function getPlayersForBrowse() {
