@@ -35,6 +35,7 @@ interface InfoResponse {
     coefficients: Record<string, number>;
   };
   feature_bounds: Record<string, FeatureBounds>;
+  feature_defaults: Record<string, number>;
 }
 
 interface PredictResponse {
@@ -78,11 +79,7 @@ export default function WinPredictorPage() {
       })
       .then((data: InfoResponse) => {
         setInfo(data);
-        const midpoints: Record<string, number> = {};
-        for (const [col, bounds] of Object.entries(data.feature_bounds)) {
-          midpoints[col] = Math.round(((bounds.min + bounds.max) / 2) * 1000) / 1000;
-        }
-        setValues(midpoints);
+        setValues({ ...data.feature_defaults });
       })
       .catch((err) => setInfoError(String(err)));
   }, []);
@@ -127,6 +124,7 @@ export default function WinPredictorPage() {
         <p className="text-muted-foreground">
           A logistic regression pipeline trained on 2016-2026 PGA Tour season stats predicts
           whether a stat line looks like a winning season. Live model served from Modal.
+          Push the numbers as high or low as you want — see what it takes to look like a winner.
         </p>
       </div>
 
@@ -144,7 +142,8 @@ export default function WinPredictorPage() {
             <CardHeader>
               <CardTitle>Enter a season stat line</CardTitle>
               <CardDescription>
-                Defaults are the midpoint of each stat&apos;s real range in the training data.
+                Defaults are real tour-average values — but the limits are wide on purpose.
+                Try a scoring average of 55 or a driving distance of 400 and see what happens.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
